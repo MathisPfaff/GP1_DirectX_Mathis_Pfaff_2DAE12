@@ -37,7 +37,65 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 Renderer::~Renderer()
 {
+	// Release resources in REVERSE order of creation
 
+	// 1. Render Target View
+	if (m_pRenderTargetView)
+	{
+		m_pRenderTargetView->Release();
+		m_pRenderTargetView = nullptr;
+	}
+
+	// 2. Render Target Buffer
+	if (m_pRenderTargetBuffer)
+	{
+		m_pRenderTargetBuffer->Release();
+		m_pRenderTargetBuffer = nullptr;
+	}
+
+	// 3. Depth Stencil View
+	if (m_pDepthStencilView)
+	{
+		m_pDepthStencilView->Release();
+		m_pDepthStencilView = nullptr;
+	}
+
+	// 4. Depth Stencil Buffer
+	if (m_pDepthStencilBuffer)
+	{
+		m_pDepthStencilBuffer->Release();
+		m_pDepthStencilBuffer = nullptr;
+	}
+
+	// 5. Swap Chain
+	if (m_pSwapChain)
+	{
+		m_pSwapChain->Release();
+		m_pSwapChain = nullptr;
+	}
+
+	// 6. Device Context
+	if (m_pDeviceContext)
+	{
+		m_pDeviceContext->ClearState();
+		m_pDeviceContext->Flush();
+		m_pDeviceContext->Release();
+		m_pDeviceContext = nullptr;
+	}
+
+	// 7. Device
+	if (m_pDevice)
+	{
+		m_pDevice->Release();
+		m_pDevice = nullptr;
+	}
+
+	// 8. DXGI Factory
+	if (m_pDXGIFactory)
+	{
+		m_pDXGIFactory->Release();
+		m_pDXGIFactory = nullptr;
+	}
 }
 
 void Renderer::Update(const Timer* pTimer)
@@ -50,6 +108,16 @@ void Renderer::Render() const
 {
 	if (!m_IsInitialized)
 		return;
+
+	// 1. Clear RTV and DSV
+	constexpr float color[4] = { 0.f, 0.f, 0.3f, 1.f };
+	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, color);
+	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+
+	// 2. Set Pipeline + Invoke Draw Calls (=render)
+
+	// 3. Present backbuffer (swap)
+	m_pSwapChain->Present(0, 0);
 }
 
 HRESULT Renderer::InitializeDirectX()
@@ -62,18 +130,9 @@ HRESULT Renderer::InitializeDirectX()
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	HRESULT result = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, 0, createDeviceFlags, &featureLevel,
-		1, D3D11_SDK_VERSION, &m_pDevice, nullptr, &m_pDeviceContext);
-
-	if(FAILED(result))
-	{
-		return result;
-	}
-
 	// Create DXGI Factory
 	//==============================
-	IDXGIFactory1* pDXGIFactory{};
-	result = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&pDXGIFactory));
+	HRESULT result = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&m_pDXGIFactory));
 
 	if (FAILED(result)) 
 	{
@@ -85,7 +144,7 @@ HRESULT Renderer::InitializeDirectX()
 	IDXGIAdapter* adapter = nullptr;
 	IDXGIAdapter* selectedAdapter = nullptr;
 
-	for(UINT i = 0; pDXGIFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i)
+	for(UINT i = 0; m_pDXGIFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i)
 	{
 		DXGI_ADAPTER_DESC desc;
 		adapter->GetDesc(&desc);
@@ -96,17 +155,41 @@ HRESULT Renderer::InitializeDirectX()
 			selectedAdapter = adapter;
 			break;
 		}
+		else
+		{
+			adapter->Release();
+		}
 	}
 
 	if (selectedAdapter == nullptr)
 	{
 		std::wcout << L"No suitable adapter found, defaulting to first adapter.\n";
-		selectedAdapter = adapter;
+		result = m_pDXGIFactory->EnumAdapters(0, &selectedAdapter);
+		if (FAILED(result))
+		{
+			return result;
+		}
 	}
 
 	result = D3D11CreateDevice(selectedAdapter, D3D_DRIVER_TYPE_UNKNOWN,
 		0, createDeviceFlags, &featureLevel, 1,
 		D3D11_SDK_VERSION, &m_pDevice, nullptr, &m_pDeviceContext);
+
+	if(FAILED(result))
+	{
+		if (selectedAdapter)
+		{
+			selectedAdapter->Release();
+		}
+		return result;
+	}
+
+	// Release the selected adapter after device creation
+	if (selectedAdapter)
+	{
+		selectedAdapter->Release();
+		selectedAdapter = nullptr;
+	}
 
 	//2. Create Swap Chain
 	//==============================
@@ -133,11 +216,18 @@ HRESULT Renderer::InitializeDirectX()
 	swapChainDesc.OutputWindow = sysWMInfo.info.win.window;
 
 	// Create the swap chain
-	result = pDXGIFactory->CreateSwapChain(m_pDevice, &swapChainDesc, &m_pSwapChain);
-
-	if (FAILED(result))
+	if (m_pDevice != nullptr)
 	{
-		return result;
+		result = m_pDXGIFactory->CreateSwapChain(m_pDevice, &swapChainDesc, &m_pSwapChain);
+
+		if (FAILED(result))
+		{
+			return result;
+		}
+	}
+	else
+	{
+		return E_FAIL;
 	}
 
 	//3. Create DepthStencil (DS) and DepthStencilView (DSV)
@@ -176,5 +266,39 @@ HRESULT Renderer::InitializeDirectX()
 		return result;
 	}
 
+	//4. Create RenderTarget (RT) and RenderTargetView (RTV)
+	//==============================
 
+	//Resource
+	result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&m_pRenderTargetBuffer));
+
+	if (FAILED(result))
+	{
+		return result;
+	}
+
+	//View
+	result = m_pDevice->CreateRenderTargetView(m_pRenderTargetBuffer, nullptr, &m_pRenderTargetView);
+
+	if (FAILED(result))
+	{
+		return result;
+	}
+
+	//5. Bind RTV and DSV to Output Merger Stage
+	//==============================
+	m_pDeviceContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
+
+	//6. Set Viewport
+	//==============================
+	D3D11_VIEWPORT viewport{};
+	viewport.Width = static_cast<float>(m_Width);
+	viewport.Height = static_cast<float>(m_Height);
+	viewport.TopLeftX = 0.f;
+	viewport.TopLeftY = 0.f;
+	viewport.MinDepth = 0.f;
+	viewport.MaxDepth = 1.f;
+	m_pDeviceContext->RSSetViewports(1, &viewport);
+
+	return S_OK;
 }
