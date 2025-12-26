@@ -40,7 +40,7 @@ technique11 DefaultTechnique
 	pass P0
 	{
 		SetVertexShader( CompileShader( vs_5_0, VS() ) );
-        SetGeomertyShader( NULL );
+        SetGeometryShader( NULL );
 		SetPixelShader( CompileShader( ps_5_0, PS() ) );
     }
 }

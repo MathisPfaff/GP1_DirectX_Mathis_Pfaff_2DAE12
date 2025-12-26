@@ -4,7 +4,7 @@ static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& asse
 {
 	HRESULT result;
 	ID3D10Blob* pErrorBlob{ nullptr };
-	ID3DX11Effect* pEffect;
+	ID3DX11Effect* pEffect{ nullptr };
 
 	DWORD shaderFlags = 0;
 #if defined( DEBUG ) || defined( _DEBUG )
@@ -60,10 +60,15 @@ Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile)
 		//m_pTechnique = m_pEffect->GetTechniqueByIndex(0);
 		m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
 
-		if(!m_pTechnique->IsValid())
+		if (!m_pTechnique->IsValid())
 		{
 			std::wcout << L"Effect: Technique not valid!\n";
 		}
+	}
+	else
+	{
+		std::wcout << L"Effect: Failed to load effect file!\n";
+		m_pTechnique = nullptr;
 	}
 }
 

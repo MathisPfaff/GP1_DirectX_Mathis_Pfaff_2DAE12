@@ -15,6 +15,8 @@
 // Framework Headers
 #include "Timer.h"
 
+class Mesh;
+
 namespace dae
 {
 	class Renderer final
@@ -49,7 +51,6 @@ namespace dae
 		ID3D11DepthStencilView* m_pDepthStencilView;
 		ID3D11Resource* m_pRenderTargetBuffer;
 		ID3D11RenderTargetView* m_pRenderTargetView;
-
-		
+		Mesh* m_pMesh{};
 	};
 }

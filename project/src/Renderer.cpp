@@ -7,6 +7,7 @@
 
 //Project includes
 #include "Renderer.h"
+#include "Mesh.h"
 
 using namespace dae;
 
@@ -27,11 +28,27 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	{
 		std::cout << "DirectX initialization failed!\n";
 	}
+
+	std::vector<Vertex_PosCol> vertices{
+		{{  0.f,  0.5f, 0.5f}, {1.f, 0.f, 0.f}},
+		{{ 0.5f, -0.5f, 0.5f}, {0.f, 1.f, 0.f}},
+		{{-0.5f, -0.5f, 0.5f}, {0.f, 0.f, 1.f}}
+	};
+
+	std::vector<uint32_t> indices{0, 1, 2};
+
+	m_pMesh = new Mesh(m_pDevice, vertices, indices);
 }
 
 Renderer::~Renderer()
 {
 	// Release resources in REVERSE order of creation
+
+	if(m_pMesh)
+	{
+		delete m_pMesh;
+		m_pMesh = nullptr;
+	}
 
 	// 1. Render Target View
 	if (m_pRenderTargetView)
@@ -111,18 +128,7 @@ void Renderer::Render() const
 
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
 
-	static constexpr uint32_t numElements{ 2 };
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[numElements]{};
-
-	vertexDesc[0].SemanticName = "POSITION";
-	vertexDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	vertexDesc[0].AlignedByteOffset = 0;
-	vertexDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-
-	vertexDesc[1].SemanticName = "COLOR";
-	vertexDesc[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	vertexDesc[1].AlignedByteOffset = 12;
-	vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	
 
 
 	// 3. Present backbuffer (swap)

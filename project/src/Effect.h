@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <sstream>
 #include <dxgi.h>
@@ -20,6 +22,6 @@ public:
 	ID3DX11EffectTechnique* GetTechnique() const;
 
 private:
-	ID3DX11Effect* m_pEffect{};
-	ID3DX11EffectTechnique* m_pTechnique{};
+	ID3DX11Effect* m_pEffect;
+	ID3DX11EffectTechnique* m_pTechnique;
 };
