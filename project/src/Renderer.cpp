@@ -31,8 +31,8 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 	std::vector<Vertex_PosCol> vertices{
 		{{  0.f,  0.5f, 0.5f}, {1.f, 0.f, 0.f}},
-		{{ 0.5f, -0.5f, 0.5f}, {0.f, 1.f, 0.f}},
-		{{-0.5f, -0.5f, 0.5f}, {0.f, 0.f, 1.f}}
+		{{ 0.5f, -0.5f, 0.5f}, {0.f, 0.f, 1.f}},
+		{{-0.5f, -0.5f, 0.5f}, {0.f, 1.f, 0.f}}
 	};
 
 	std::vector<uint32_t> indices{0, 1, 2};
@@ -128,8 +128,7 @@ void Renderer::Render() const
 
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
 
-	
-
+	m_pMesh->Render(m_pDeviceContext);
 
 	// 3. Present backbuffer (swap)
 	m_pSwapChain->Present(0, 0);
