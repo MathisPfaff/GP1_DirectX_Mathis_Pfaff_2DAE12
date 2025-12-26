@@ -1,35 +1,5 @@
 #include "Effect.h"
 
-Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile)
-{
-	m_pEffect = LoadEffect(pDevice, assetFile);
-
-	if (m_pEffect != nullptr)
-	{
-		//m_pTechnique = m_pEffect->GetTechniqueByIndex(0);
-		m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
-
-		if(!m_pTechnique->IsValid())
-		{
-			std::wcout << L"Effect: Technique not valid!\n";
-		}
-	}
-}
-
-Effect::~Effect()
-{
-	if (m_pTechnique)
-	{
-		m_pTechnique = nullptr;
-	}
-
-	if (m_pEffect)
-	{
-		m_pEffect->Release();
-		m_pEffect = nullptr;
-	}
-}
-
 static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& assetFile)
 {
 	HRESULT result;
@@ -79,6 +49,36 @@ static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& asse
 	}
 
 	return pEffect;
+}
+
+Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile)
+{
+	m_pEffect = LoadEffect(pDevice, assetFile);
+
+	if (m_pEffect != nullptr)
+	{
+		//m_pTechnique = m_pEffect->GetTechniqueByIndex(0);
+		m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
+
+		if(!m_pTechnique->IsValid())
+		{
+			std::wcout << L"Effect: Technique not valid!\n";
+		}
+	}
+}
+
+Effect::~Effect()
+{
+	if (m_pTechnique)
+	{
+		m_pTechnique = nullptr;
+	}
+
+	if (m_pEffect)
+	{
+		m_pEffect->Release();
+		m_pEffect = nullptr;
+	}
 }
 
 ID3DX11Effect* Effect::GetEffect() const
