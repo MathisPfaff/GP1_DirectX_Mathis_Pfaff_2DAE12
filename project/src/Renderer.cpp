@@ -8,12 +8,6 @@
 //Project includes
 #include "Renderer.h"
 
-// DirectX Headers
-#include <dxgi.h>
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <d3dx11effect.h>
-
 using namespace dae;
 
 Renderer::Renderer(SDL_Window* pWindow) :
@@ -114,7 +108,22 @@ void Renderer::Render() const
 	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, color);
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
+
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
+
+	static constexpr uint32_t numElements{ 2 };
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[numElements]{};
+
+	vertexDesc[0].SemanticName = "POSITION";
+	vertexDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vertexDesc[0].AlignedByteOffset = 0;
+	vertexDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
+	vertexDesc[1].SemanticName = "COLOR";
+	vertexDesc[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	vertexDesc[1].AlignedByteOffset = 12;
+	vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
 
 	// 3. Present backbuffer (swap)
 	m_pSwapChain->Present(0, 0);
