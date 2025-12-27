@@ -92,8 +92,12 @@ Mesh::~Mesh()
 	}
 }
 
-void Mesh::Render(ID3D11DeviceContext* pDeviceContext) const
+void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix) const
 {
+	// Set the WorldViewProjection matrix
+	dae::Matrix transposed = dae::Matrix::Transpose(worldViewProjMatrix);
+	m_pEffect->GetMatrixVariable()->SetMatrix(reinterpret_cast<const float*>(&worldViewProjMatrix));
+
 	// 1. Set Primitive Topology
 	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

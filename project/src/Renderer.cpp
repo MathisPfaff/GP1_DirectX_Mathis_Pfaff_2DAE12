@@ -12,7 +12,8 @@
 using namespace dae;
 
 Renderer::Renderer(SDL_Window* pWindow) :
-	m_pWindow(pWindow)
+	m_pWindow(pWindow),
+	m_Camera(Vector3(0.f, 0.f, -10.f), 45.f)
 {
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
@@ -29,10 +30,15 @@ Renderer::Renderer(SDL_Window* pWindow) :
 		std::cout << "DirectX initialization failed!\n";
 	}
 
+	// Initialize camera
+	m_Camera.Initialize(45.f, Vector3(0.f, 0.f, -10.f), float(m_Width) / float(m_Height));
+	m_Camera.CalculateViewMatrix();
+	m_Camera.CalculateProjectionMatrix();
+
 	std::vector<Vertex_PosCol> vertices{
-		{{  0.f,  0.5f, 0.5f}, {1.f, 0.f, 0.f}},
-		{{ 0.5f, -0.5f, 0.5f}, {0.f, 0.f, 1.f}},
-		{{-0.5f, -0.5f, 0.5f}, {0.f, 1.f, 0.f}}
+		{{  0.f,  3.f,  2.f}, {1.f, 0.f, 0.f}},
+		{{  3.f, -3.f,  2.f}, {0.f, 0.f, 1.f}},
+		{{ -3.f, -3.f,  2.f}, {0.f, 1.f, 0.f}}
 	};
 
 	std::vector<uint32_t> indices{0, 1, 2};
@@ -111,7 +117,7 @@ Renderer::~Renderer()
 
 void Renderer::Update(const Timer* pTimer)
 {
-
+	m_Camera.Update(const_cast<Timer*>(pTimer));
 }
 
 
@@ -127,8 +133,12 @@ void Renderer::Render() const
 
 
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
+	Matrix worldMatrix = Matrix::CreateIdentity();
+	Matrix viewMatrix = m_Camera.GetViewMatrix();
+	Matrix projMatrix = m_Camera.GetProjectionMatrix();
+	Matrix worldViewProjMatrix = worldMatrix * viewMatrix * projMatrix;
 
-	m_pMesh->Render(m_pDeviceContext);
+	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix);
 
 	// 3. Present backbuffer (swap)
 	m_pSwapChain->Present(0, 0);

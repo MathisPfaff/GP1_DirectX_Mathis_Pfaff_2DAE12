@@ -7,6 +7,7 @@
 #include <d3dx11effect.h>
 #include <DirectXMath.h>
 #include "Effect.h"
+#include "Matrix.h"
 
 
 struct Vertex_PosCol
@@ -32,9 +33,6 @@ struct Vertex_PosCol
 class Mesh final
 {
 public:
-
-	
-
 	Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices);
 	~Mesh();
 
@@ -43,7 +41,7 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&&) noexcept = delete;
 
-	void Render(ID3D11DeviceContext* pDeviceContext) const;
+	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix) const;
 
 private:
 	ID3D11Device* m_pDevice;

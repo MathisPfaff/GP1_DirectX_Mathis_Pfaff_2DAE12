@@ -186,16 +186,48 @@ namespace dae {
 		return out;
 	}
 
-	Matrix Matrix::CreateLookAtLH(const Vector3& origin, const Vector3& forward, const Vector3& up)
+	Matrix Matrix::CreateLookAtLH(const Vector3& origin, const Vector3& target, const Vector3& up)
 	{
-		//TODO
-		return {};
+		//Vector3 right = Vector3::Cross(up, forward).Normalized();
+		//Vector3 adjustedUp = Vector3::Cross(forward, right).Normalized();
+		//
+		//return Matrix{ right, adjustedUp, forward, origin }.Inverse();
+
+		// Calculate the forward direction from origin to target
+		Vector3 forward = (target - origin).Normalized();
+
+		// Calculate the right vector (perpendicular to forward and up)
+		Vector3 right = Vector3::Cross(up, forward).Normalized();
+
+		// Recalculate up to ensure orthonormality
+		Vector3 adjustedUp = Vector3::Cross(forward, right).Normalized();
+
+		// Create view matrix
+		// In a LookAtLH matrix, we want:
+		// - right vector as the X axis
+		// - adjustedUp vector as the Y axis
+		// - forward vector as the Z axis
+		// - negated origin as the translation
+
+		Matrix viewMatrix{
+			right,
+			adjustedUp,
+			forward,
+			Vector3(-Vector3::Dot(right, origin), -Vector3::Dot(adjustedUp, origin), -Vector3::Dot(forward, origin))
+		};
+
+		return viewMatrix;
 	}
 
 	Matrix Matrix::CreatePerspectiveFovLH(float fov, float aspect, float zn, float zf)
 	{
-		//TODO
-		return {};
+		return Matrix
+		{
+			Vector4{ (1.0f) / (aspect * fov), 0.0f,					0.0f,						0.0f },
+			Vector4{ 0.0f,						(1.0f / fov),		0.0f,						0.0f },
+			Vector4{ 0.0f,						0.0f,				(zf / (zf - zn)),			1.0f },
+			Vector4{ 0.0f,						0.0f,				-((zf * zn) / (zf - zn)),	0.0f }
+		};
 	}
 
 	Vector3 Matrix::GetAxisX() const
