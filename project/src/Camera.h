@@ -72,7 +72,7 @@ namespace dae
 			const float deltaTime = pTimer->GetElapsed();
 
 			const float moveSpeed = 20.0f * deltaTime;
-			const float rotateSpeed = dae::TO_RADIANS * 5.0f * deltaTime;
+			const float rotateSpeed = dae::TO_RADIANS * 50.0f * deltaTime;
 
 			// Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);

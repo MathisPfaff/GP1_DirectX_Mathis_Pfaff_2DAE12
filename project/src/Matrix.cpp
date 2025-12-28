@@ -186,13 +186,14 @@ namespace dae {
 		return out;
 	}
 
-	Matrix Matrix::CreateLookAtLH(const Vector3& origin, const Vector3& target, const Vector3& up)
+	Matrix Matrix::CreateLookAtLH(const Vector3& origin, const Vector3& forward, const Vector3& up)
 	{
-		//Vector3 right = Vector3::Cross(up, forward).Normalized();
-		//Vector3 adjustedUp = Vector3::Cross(forward, right).Normalized();
-		//
-		//return Matrix{ right, adjustedUp, forward, origin }.Inverse();
+		Vector3 right = Vector3::Cross(up, forward).Normalized();
+		Vector3 adjustedUp = Vector3::Cross(forward, right).Normalized();
+		
+		return Matrix{ right, adjustedUp, forward, origin }.Inverse();
 
+		/*
 		// Calculate the forward direction from origin to target
 		Vector3 forward = (target - origin).Normalized();
 
@@ -217,6 +218,7 @@ namespace dae {
 		};
 
 		return viewMatrix;
+		*/
 	}
 
 	Matrix Matrix::CreatePerspectiveFovLH(float fov, float aspect, float zn, float zf)
