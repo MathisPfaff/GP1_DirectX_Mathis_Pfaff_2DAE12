@@ -9,12 +9,13 @@
 #include "Renderer.h"
 #include "Mesh.h"
 #include "Texture.h"
+#include "Utils.h"
 
 using namespace dae;
 
 Renderer::Renderer(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
-	m_Camera(Vector3(0.f, 0.f, -10.f), 45.f)
+	m_Camera(Vector3(0.f, 0.f, -50.f), 45.f)
 {
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
@@ -32,25 +33,24 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	}
 
 	// Initialize camera
-	m_Camera.Initialize(45.f, Vector3(0.f, 0.f, -10.f), float(m_Width) / float(m_Height));
+	m_Camera.Initialize(45.f, Vector3(0.f, 0.f, -50.f), float(m_Width) / float(m_Height));
 	m_Camera.CalculateViewMatrix();
 	m_Camera.CalculateProjectionMatrix();
 
-	m_pTexture = new Texture(m_pDevice, "Resources/uv_grid_2.png");
+	m_pTexture = new Texture(m_pDevice, "resources/vehicle_diffuse.png");
 
-	std::vector<Vertex_PosCol> vertices{
-		{{  -1.f,  1.f,  0.f}, {1.f, 1.f, 1.f}, {0.f, 0.f}},  
-		{{   1.f,  1.f,  0.f}, {1.f, 1.f, 1.f}, {1.f, 0.f}},  
-		{{   1.f, -1.f,  0.f}, {1.f, 1.f, 1.f}, {1.f, 1.f}},  
-		{{  -1.f, -1.f,  0.f}, {1.f, 1.f, 1.f}, {0.f, 1.f}}   
-	};
+	std::vector<Vertex_PosCol> vertices{};
+	std::vector<uint32_t> indices{};
 
-	std::vector<uint32_t> indices{
-		0, 1, 2,  
-		0, 2, 3   
-	};
-
-	m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pTexture);
+	if (dae::Utils::ParseOBJ("resources/vehicle.obj", vertices, indices, true))
+	{
+		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pTexture);
+	}
+	else
+	{
+		std::cerr << "Failed to load vehicle mesh from OBJ file!\n";
+		m_pMesh = nullptr;
+	}
 }
 
 Renderer::~Renderer()

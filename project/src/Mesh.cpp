@@ -7,7 +7,7 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, co
 	m_Indices{ indices },
 	m_pTexture{ pTexture }
 {
-	m_pEffect = new Effect(pDevice, L"Resources/PosCol3D.fx");
+	m_pEffect = new Effect(pDevice, L"resources/PosCol3D.fx");
 
 	// create vertex layout
 	static constexpr uint32_t numElements{ 3 };
