@@ -57,6 +57,8 @@ int main(int argc, char* args[])
 	pTimer->Start();
 	float printTimer = 0.f;
 	bool isLooping = true;
+	SamplerFilter currentFilter = SamplerFilter::Point;
+
 	while (isLooping)
 	{
 		//--------- Get input events ---------
@@ -69,8 +71,23 @@ int main(int argc, char* args[])
 				isLooping = false;
 				break;
 			case SDL_KEYUP:
-				//Test for a key
-				//if (e.key.keysym.scancode == SDL_SCANCODE_X)
+				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
+				{
+					// Cycle through sampler filters
+					switch (currentFilter)
+					{
+					case SamplerFilter::Point:
+						currentFilter = SamplerFilter::Linear;
+						break;
+					case SamplerFilter::Linear:
+						currentFilter = SamplerFilter::Anisotropic;
+						break;
+					case SamplerFilter::Anisotropic:
+						currentFilter = SamplerFilter::Point;
+						break;
+					}
+					pRenderer->SetSamplerFilter(currentFilter);
+				}
 				break;
 			default: ;
 			}

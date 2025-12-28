@@ -133,6 +133,23 @@ void Renderer::Update(const Timer* pTimer)
 	m_Camera.Update(const_cast<Timer*>(pTimer));
 }
 
+void Renderer::SetSamplerFilter(SamplerFilter filter)
+{
+	m_CurrentSamplerFilter = filter;
+
+	switch (filter)
+	{
+	case SamplerFilter::Point:
+		std::cout << "Switched to Point filtering\n";
+		break;
+	case SamplerFilter::Linear:
+		std::cout << "Switched to Linear filtering\n";
+		break;
+	case SamplerFilter::Anisotropic:
+		std::cout << "Switched to Anisotropic filtering\n";
+		break;
+	}
+}
 
 void Renderer::Render() const
 {
@@ -151,7 +168,7 @@ void Renderer::Render() const
 	Matrix projMatrix = m_Camera.GetProjectionMatrix();
 	Matrix worldViewProjMatrix = worldMatrix * viewMatrix * projMatrix;
 
-	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix);
+	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, m_CurrentSamplerFilter);
 
 	// 3. Present backbuffer (swap)
 	m_pSwapChain->Present(0, 0);

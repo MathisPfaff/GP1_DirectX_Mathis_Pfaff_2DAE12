@@ -15,6 +15,7 @@
 // Framework Headers
 #include "Timer.h"
 #include "Camera.h"
+#include "Effect.h"
 
 class Mesh;
 class Texture;
@@ -34,6 +35,7 @@ namespace dae
 
 		void Update(const Timer* pTimer);
 		void Render() const;
+		void SetSamplerFilter(SamplerFilter filter);
 
 	private:
 		SDL_Window* m_pWindow{};
@@ -44,6 +46,7 @@ namespace dae
 		bool m_IsInitialized{ false };
 
 		Camera m_Camera{};
+		mutable SamplerFilter m_CurrentSamplerFilter{ SamplerFilter::Point };
 
 		//DIRECTX
 		HRESULT InitializeDirectX();

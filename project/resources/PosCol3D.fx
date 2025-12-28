@@ -11,11 +11,26 @@ cbuffer MatrixBuffer : register(b0)
 //---------------------------------------------------------------
 Texture2D gDiffuseMap : DiffuseMap;
 
-SamplerState samplerState
-{         
+SamplerState samplerPoint
+{
     Filter = MIN_MAG_MIP_POINT;
     AddressU = WRAP;
     AddressV = WRAP;
+};
+
+SamplerState samplerLinear
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = WRAP;
+    AddressV = WRAP;
+};
+
+SamplerState samplerAnisotropic
+{
+    Filter = ANISOTROPIC;
+    AddressU = WRAP;
+    AddressV = WRAP;
+    MaxAnisotropy = 16;
 };
 
 //---------------------------------------------------------------
@@ -50,21 +65,53 @@ VS_OUTPUT VS(VS_INPUT input)
 //---------------------------------------------------------------
 // Pixel Shader
 //---------------------------------------------------------------
-float4 PS(VS_OUTPUT input) : SV_TARGET
+float4 PSPoint(VS_OUTPUT input) : SV_TARGET
 {
-    float4 texColor = gDiffuseMap.Sample(samplerState, input.TexCoord);
-    return texColor * float4(input.Color, 1.f);
+    float4 texColor = gDiffuseMap.Sample(samplerPoint, input.TexCoord);
+    return texColor;
+}
+
+float4 PSLinear(VS_OUTPUT input) : SV_TARGET
+{
+    float4 texColor = gDiffuseMap.Sample(samplerLinear, input.TexCoord);
+    return texColor;
+}
+
+float4 PSAnisotropic(VS_OUTPUT input) : SV_TARGET
+{
+    float4 texColor = gDiffuseMap.Sample(samplerAnisotropic, input.TexCoord);
+    return texColor;
 }
 
 //---------------------------------------------------------------
 // Technique
 //---------------------------------------------------------------
-technique11 DefaultTechnique
+technique11 PointTechnique
 {
-	pass P0
-	{
-		SetVertexShader( CompileShader( vs_5_0, VS() ) );
-        SetGeometryShader( NULL );
-		SetPixelShader( CompileShader( ps_5_0, PS() ) );
+    pass P0
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSPoint()));
+    }
+}
+
+technique11 LinearTechnique
+{
+    pass P0
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSLinear()));
+    }
+}
+
+technique11 AnisotropicTechnique
+{
+    pass P0
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSAnisotropic()));
     }
 }

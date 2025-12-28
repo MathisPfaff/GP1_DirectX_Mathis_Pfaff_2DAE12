@@ -49,7 +49,7 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&&) noexcept = delete;
 
-	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix) const;
+	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, SamplerFilter filter = SamplerFilter::Point) const;
 
 private:
 	ID3D11Device* m_pDevice;

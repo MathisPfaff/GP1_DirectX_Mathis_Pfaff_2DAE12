@@ -97,9 +97,11 @@ Mesh::~Mesh()
 		delete m_pEffect;
 		m_pEffect = nullptr;
 	}
+
+	m_pTexture = nullptr;
 }
 
-void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix) const
+void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, SamplerFilter filter) const
 {
 	// Set the WorldViewProjection matrix
 	dae::Matrix transposed = dae::Matrix::Transpose(worldViewProjMatrix);
@@ -130,7 +132,7 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldV
 	m_pEffect->GetTechnique()->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
-		m_pEffect->GetTechnique()->GetPassByIndex(p)->Apply(0, pDeviceContext);
+		m_pEffect->GetTechnique(filter)->GetPassByIndex(p)->Apply(0, pDeviceContext);
 		pDeviceContext->DrawIndexed(static_cast<UINT>(m_Indices.size()), 0, 0);
 	}
 }

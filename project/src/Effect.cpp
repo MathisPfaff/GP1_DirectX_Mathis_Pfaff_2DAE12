@@ -53,17 +53,31 @@ static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& asse
 
 Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile) :
 	m_pMatWorldViewProjVariable{ nullptr },
-	m_pDiffuseMapVariable{ nullptr }
+	m_pDiffuseMapVariable{ nullptr },
+	m_pTechniquePoint{ nullptr },
+	m_pTechniqueLinear{ nullptr },
+	m_pTechniqueAnisotropic{ nullptr }
 {
 	m_pEffect = LoadEffect(pDevice, assetFile);
 
 	if (m_pEffect != nullptr)
 	{
-		m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
-
-		if (!m_pTechnique->IsValid())
+		m_pTechniquePoint = m_pEffect->GetTechniqueByName("PointTechnique");
+		if (!m_pTechniquePoint->IsValid())
 		{
-			std::wcout << L"Effect: Technique not valid!\n";
+			std::wcout << L"Effect: PointTechnique not valid!\n";
+		}
+
+		m_pTechniqueLinear = m_pEffect->GetTechniqueByName("LinearTechnique");
+		if (!m_pTechniqueLinear->IsValid())
+		{
+			std::wcout << L"Effect: LinearTechnique not valid!\n";
+		}
+
+		m_pTechniqueAnisotropic = m_pEffect->GetTechniqueByName("AnisotropicTechnique");
+		if (!m_pTechniqueAnisotropic->IsValid())
+		{
+			std::wcout << L"Effect: AnisotropicTechnique not valid!\n";
 		}
 
 		m_pMatWorldViewProjVariable = m_pEffect->GetVariableByName("gWorldViewProj")->AsMatrix();
@@ -81,17 +95,11 @@ Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile) :
 	else
 	{
 		std::wcout << L"Effect: Failed to load effect file!\n";
-		m_pTechnique = nullptr;
 	}
 }
 
 Effect::~Effect()
 {
-	if (m_pTechnique)
-	{
-		m_pTechnique = nullptr;
-	}
-
 	if (m_pEffect)
 	{
 		m_pEffect->Release();
@@ -104,9 +112,19 @@ ID3DX11Effect* Effect::GetEffect() const
 	return m_pEffect;
 }
 
-ID3DX11EffectTechnique* Effect::GetTechnique() const
+ID3DX11EffectTechnique* Effect::GetTechnique(SamplerFilter filter) const
 {
-	return m_pTechnique;
+	switch (filter)
+	{
+	case SamplerFilter::Point:
+		return m_pTechniquePoint;
+	case SamplerFilter::Linear:
+		return m_pTechniqueLinear;
+	case SamplerFilter::Anisotropic:
+		return m_pTechniqueAnisotropic;
+	default:
+		return m_pTechniquePoint;
+	}
 }
 
 ID3DX11EffectMatrixVariable* Effect::GetMatrixVariable() const
