@@ -8,6 +8,7 @@
 //Project includes
 #include "Renderer.h"
 #include "Mesh.h"
+#include "Texture.h"
 
 using namespace dae;
 
@@ -35,15 +36,21 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	m_Camera.CalculateViewMatrix();
 	m_Camera.CalculateProjectionMatrix();
 
+	m_pTexture = new Texture(m_pDevice, "Resources/uv_grid_2.png");
+
 	std::vector<Vertex_PosCol> vertices{
-		{{  0.f,  3.f,  2.f}, {1.f, 0.f, 0.f}},
-		{{  3.f, -3.f,  2.f}, {0.f, 0.f, 1.f}},
-		{{ -3.f, -3.f,  2.f}, {0.f, 1.f, 0.f}}
+		{{  -1.f,  1.f,  0.f}, {1.f, 1.f, 1.f}, {0.f, 0.f}},  
+		{{   1.f,  1.f,  0.f}, {1.f, 1.f, 1.f}, {1.f, 0.f}},  
+		{{   1.f, -1.f,  0.f}, {1.f, 1.f, 1.f}, {1.f, 1.f}},  
+		{{  -1.f, -1.f,  0.f}, {1.f, 1.f, 1.f}, {0.f, 1.f}}   
 	};
 
-	std::vector<uint32_t> indices{0, 1, 2};
+	std::vector<uint32_t> indices{
+		0, 1, 2,  
+		0, 2, 3   
+	};
 
-	m_pMesh = new Mesh(m_pDevice, vertices, indices);
+	m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pTexture);
 }
 
 Renderer::~Renderer()
@@ -54,6 +61,12 @@ Renderer::~Renderer()
 	{
 		delete m_pMesh;
 		m_pMesh = nullptr;
+	}
+
+	if(m_pTexture)
+	{
+		delete m_pTexture;
+		m_pTexture = nullptr;
 	}
 
 	// 1. Render Target View
@@ -133,7 +146,7 @@ void Renderer::Render() const
 
 
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
-	Matrix worldMatrix = Matrix::CreateIdentity();
+	Matrix worldMatrix = Matrix::CreateTranslation(0.f, 0.f, -5.f);
 	Matrix viewMatrix = m_Camera.GetViewMatrix();
 	Matrix projMatrix = m_Camera.GetProjectionMatrix();
 	Matrix worldViewProjMatrix = worldMatrix * viewMatrix * projMatrix;

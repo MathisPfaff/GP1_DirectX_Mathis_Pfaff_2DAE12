@@ -8,6 +8,7 @@
 #include <DirectXMath.h>
 #include "Effect.h"
 #include "Matrix.h"
+#include "Texture.h"
 
 
 struct Vertex_PosCol
@@ -26,14 +27,21 @@ struct Vertex_PosCol
 		float b;
 	};
 
+	struct TexCoord 
+	{
+		float u;
+		float v;
+	};
+
 	Position position;
 	Color color;
+	TexCoord texCoord;
 };
 
 class Mesh final
 {
 public:
-	Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices);
+	Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture);
 	~Mesh();
 
 	Mesh(const Mesh&) = delete;
@@ -48,6 +56,7 @@ private:
 	std::vector<Vertex_PosCol> m_Vertices{};
 	std::vector<uint32_t> m_Indices{};
 	Effect* m_pEffect;
+	Texture* m_pTexture;
 	ID3D11InputLayout* m_pInputLayout;
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;

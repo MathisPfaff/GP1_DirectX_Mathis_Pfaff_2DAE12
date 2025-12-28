@@ -17,6 +17,7 @@
 #include "Camera.h"
 
 class Mesh;
+class Texture;
 
 namespace dae
 {
@@ -55,5 +56,6 @@ namespace dae
 		ID3D11Resource* m_pRenderTargetBuffer;
 		ID3D11RenderTargetView* m_pRenderTargetView;
 		Mesh* m_pMesh{};
+		Texture* m_pTexture{};
 	};
 }

@@ -126,6 +126,10 @@ namespace dae
 			Matrix rotationMatrix = Matrix::CreateRotation(totalPitch, totalYaw, 0.0f);
 			forward = rotationMatrix.TransformVector(Vector3::UnitZ);
 			forward.Normalize();
+			right = rotationMatrix.TransformVector(Vector3::UnitX);
+			right.Normalize();
+			up = rotationMatrix.TransformVector(Vector3::UnitY);
+			up.Normalize();
 
 			// Update Matrices
 			CalculateViewMatrix();

@@ -1,15 +1,16 @@
 #include "Mesh.h"
 
 
-Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices) :
+Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture) :
 	m_pDevice{ pDevice },
 	m_Vertices{ vertices },
-	m_Indices{ indices }
+	m_Indices{ indices },
+	m_pTexture{ pTexture }
 {
 	m_pEffect = new Effect(pDevice, L"Resources/PosCol3D.fx");
 
 	// create vertex layout
-	static constexpr uint32_t numElements{ 2 };
+	static constexpr uint32_t numElements{ 3 };
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[numElements]{};
 
 	vertexDesc[0].SemanticName = "POSITION";
@@ -21,6 +22,12 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, co
 	vertexDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	vertexDesc[1].AlignedByteOffset = 12;
 	vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
+	vertexDesc[2].SemanticName = "TEXCOORD";
+	vertexDesc[2].Format = DXGI_FORMAT_R32G32_FLOAT;
+	vertexDesc[2].AlignedByteOffset = 24;
+	vertexDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
 
 	// create Input layout
 	D3DX11_PASS_DESC passDesc{};
@@ -97,6 +104,12 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldV
 	// Set the WorldViewProjection matrix
 	dae::Matrix transposed = dae::Matrix::Transpose(worldViewProjMatrix);
 	m_pEffect->GetMatrixVariable()->SetMatrix(reinterpret_cast<const float*>(&worldViewProjMatrix));
+
+	// Set the diffuse texture
+	if (m_pTexture)
+	{
+		m_pEffect->SetDiffuseMap(m_pTexture->GetShaderResourceView());
+	}
 
 	// 1. Set Primitive Topology
 	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

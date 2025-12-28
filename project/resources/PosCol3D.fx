@@ -7,18 +7,32 @@ cbuffer MatrixBuffer : register(b0)
 };
 
 //---------------------------------------------------------------
+// Shader Resources
+//---------------------------------------------------------------
+Texture2D gDiffuseMap : DiffuseMap;
+
+SamplerState samplerState
+{         
+    Filter = MIN_MAG_MIP_POINT;
+    AddressU = WRAP;
+    AddressV = WRAP;
+};
+
+//---------------------------------------------------------------
 // Input/Output structs
 //---------------------------------------------------------------
 struct VS_INPUT
 {
 	float3 Position : POSITION;
-	float3 Color : COLOR;
+    float3 Color : COLOR;
+    float2 TexCoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
-	float3 Color : COLOR;
+    float3 Color : COLOR;
+    float2 TexCoord : TEXCOORD0;
 };
 
 //---------------------------------------------------------------
@@ -28,7 +42,8 @@ VS_OUTPUT VS(VS_INPUT input)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     output.Position = mul(float4(input.Position, 1.0f), gWorldViewProj);
-	output.Color = input.Color;
+    output.Color = input.Color;
+    output.TexCoord = input.TexCoord;
 	return output;
 }
 
@@ -37,7 +52,8 @@ VS_OUTPUT VS(VS_INPUT input)
 //---------------------------------------------------------------
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-	return float4(input.Color, 1.f);
+    float4 texColor = gDiffuseMap.Sample(samplerState, input.TexCoord);
+    return texColor * float4(input.Color, 1.f);
 }
 
 //---------------------------------------------------------------
