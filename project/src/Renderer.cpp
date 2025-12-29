@@ -131,6 +131,7 @@ Renderer::~Renderer()
 void Renderer::Update(const Timer* pTimer)
 {
 	m_Camera.Update(const_cast<Timer*>(pTimer));
+	m_MeshRotationDegrees += pTimer->GetElapsed() * 90.f;
 }
 
 void Renderer::SetSamplerFilter(SamplerFilter filter)
@@ -163,7 +164,8 @@ void Renderer::Render() const
 
 
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
-	Matrix worldMatrix = Matrix::CreateTranslation(0.f, 0.f, -5.f);
+	Matrix worldMatrix = Matrix::CreateRotationY(m_MeshRotationDegrees * 3.14159f / 180.f);
+
 	Matrix viewMatrix = m_Camera.GetViewMatrix();
 	Matrix projMatrix = m_Camera.GetProjectionMatrix();
 	Matrix worldViewProjMatrix = worldMatrix * viewMatrix * projMatrix;

@@ -48,6 +48,8 @@ namespace dae
 		Camera m_Camera{};
 		mutable SamplerFilter m_CurrentSamplerFilter{ SamplerFilter::Point };
 
+		float m_MeshRotationDegrees{};
+
 		//DIRECTX
 		HRESULT InitializeDirectX();
 		IDXGIFactory1* m_pDXGIFactory{};
