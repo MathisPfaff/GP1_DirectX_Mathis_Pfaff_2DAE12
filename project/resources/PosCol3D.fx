@@ -4,7 +4,7 @@
 #define PI 3.14159265359f
 #define LIGHT_INTENSITY 7.0f
 #define SHININESS 25.0f
-static const float3 gLightDirection = { 0.577f, -0.577f, 0.577f };
+static const float3 gLightDirection = { -0.577f, 0.577f, -0.577f };
 
 //---------------------------------------------------------------
 // Constant Buffer
