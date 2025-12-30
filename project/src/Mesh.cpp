@@ -10,7 +10,7 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, co
 	m_pEffect = new Effect(pDevice, L"resources/PosCol3D.fx");
 
 	// create vertex layout
-	static constexpr uint32_t numElements{ 3 };
+	static constexpr uint32_t numElements{ 5 };
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[numElements]{};
 
 	vertexDesc[0].SemanticName = "POSITION";
@@ -27,6 +27,16 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, co
 	vertexDesc[2].Format = DXGI_FORMAT_R32G32_FLOAT;
 	vertexDesc[2].AlignedByteOffset = 24;
 	vertexDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
+	vertexDesc[3].SemanticName = "NORMAL";
+	vertexDesc[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vertexDesc[3].AlignedByteOffset = 32;
+	vertexDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+
+	vertexDesc[4].SemanticName = "TANGENT";
+	vertexDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vertexDesc[4].AlignedByteOffset = 44;
+	vertexDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
 
 	// create Input layout
@@ -101,16 +111,39 @@ Mesh::~Mesh()
 	m_pTexture = nullptr;
 }
 
-void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, SamplerFilter filter) const
+void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, const dae::Matrix& worldMatrix, const dae::Vector3& cameraPos, Texture* pNormalMap, Texture* pSpecularMap, Texture* pGlossinessMap, SamplerFilter filter) const
 {
 	// Set the WorldViewProjection matrix
-	dae::Matrix transposed = dae::Matrix::Transpose(worldViewProjMatrix);
-	m_pEffect->GetMatrixVariable()->SetMatrix(reinterpret_cast<const float*>(&worldViewProjMatrix));
+	m_pEffect->GetWorldViewProjVariable()->SetMatrix(reinterpret_cast<const float*>(&worldViewProjMatrix));
+
+	// Set the World matrix
+	m_pEffect->GetWorldMatrixVariable()->SetMatrix(reinterpret_cast<const float*>(&worldMatrix));
+
+	// Set the Camera position
+	m_pEffect->GetCameraPositionVariable()->SetFloatVector(reinterpret_cast<const float*>(&cameraPos));
 
 	// Set the diffuse texture
 	if (m_pTexture)
 	{
 		m_pEffect->SetDiffuseMap(m_pTexture->GetShaderResourceView());
+	}
+
+	// Set the normal map
+	if (pNormalMap)
+	{
+		m_pEffect->SetNormalMap(pNormalMap->GetShaderResourceView());
+	}
+
+	// Set the specular map
+	if (pSpecularMap)
+	{
+		m_pEffect->SetSpecularMap(pSpecularMap->GetShaderResourceView());
+	}
+
+	// Set the glossiness map
+	if (pGlossinessMap)
+	{
+		m_pEffect->SetGlossinessMap(pGlossinessMap->GetShaderResourceView());
 	}
 
 	// 1. Set Primitive Topology
@@ -129,7 +162,7 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldV
 
 	// 5. Draw
 	D3DX11_TECHNIQUE_DESC techDesc{};
-	m_pEffect->GetTechnique()->GetDesc(&techDesc);
+	m_pEffect->GetTechnique(filter)->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
 		m_pEffect->GetTechnique(filter)->GetPassByIndex(p)->Apply(0, pDeviceContext);

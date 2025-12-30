@@ -6,6 +6,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <d3dx11effect.h>
+#include "Matrix.h"
 
 enum class SamplerFilter
 {
@@ -27,9 +28,14 @@ public:
 
 	ID3DX11Effect* GetEffect() const;
 	ID3DX11EffectTechnique* GetTechnique(SamplerFilter filter = SamplerFilter::Point) const;
-	ID3DX11EffectMatrixVariable* GetMatrixVariable() const;
+	ID3DX11EffectMatrixVariable* GetWorldViewProjVariable() const;
+	ID3DX11EffectMatrixVariable* GetWorldMatrixVariable() const;
+	ID3DX11EffectVectorVariable* GetCameraPositionVariable() const;
 
 	void SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseTexture);
+	void SetNormalMap(ID3D11ShaderResourceView* pNormalTexture);
+	void SetSpecularMap(ID3D11ShaderResourceView* pSpecularTexture);
+	void SetGlossinessMap(ID3D11ShaderResourceView* pGlossinessTexture);
 
 private:
 	ID3DX11Effect* m_pEffect;
@@ -37,5 +43,10 @@ private:
 	ID3DX11EffectTechnique* m_pTechniqueLinear;
 	ID3DX11EffectTechnique* m_pTechniqueAnisotropic;
 	ID3DX11EffectMatrixVariable* m_pMatWorldViewProjVariable;
+	ID3DX11EffectMatrixVariable* m_pMatWorldVariable;
+	ID3DX11EffectVectorVariable* m_pCameraPositionVariable;
 	ID3DX11EffectShaderResourceVariable* m_pDiffuseMapVariable;
+	ID3DX11EffectShaderResourceVariable* m_pNormalMapVariable;
+	ID3DX11EffectShaderResourceVariable* m_pSpecularMapVariable;
+	ID3DX11EffectShaderResourceVariable* m_pGlossinessMapVariable;
 };

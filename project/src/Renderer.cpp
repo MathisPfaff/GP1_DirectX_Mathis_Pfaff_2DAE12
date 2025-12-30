@@ -37,14 +37,24 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	m_Camera.CalculateViewMatrix();
 	m_Camera.CalculateProjectionMatrix();
 
-	m_pTexture = new Texture(m_pDevice, "resources/vehicle_diffuse.png");
+	// Load all textures
+	m_pDiffuseTexture = new Texture(m_pDevice, "resources/vehicle_diffuse.png");
+	m_pNormalTexture = new Texture(m_pDevice, "resources/vehicle_normal.png");
+	m_pSpecularTexture = new Texture(m_pDevice, "resources/vehicle_specular.png");
+	m_pGlossinessTexture = new Texture(m_pDevice, "resources/vehicle_gloss.png");
+
+	std::cout << "Textures loaded:\n";
+	std::cout << "  Diffuse SRV: " << (m_pDiffuseTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
+	std::cout << "  Normal SRV: " << (m_pNormalTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
+	std::cout << "  Specular SRV: " << (m_pSpecularTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
+	std::cout << "  Glossiness SRV: " << (m_pGlossinessTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 
 	std::vector<Vertex_PosCol> vertices{};
 	std::vector<uint32_t> indices{};
 
 	if (dae::Utils::ParseOBJ("resources/vehicle.obj", vertices, indices, true))
 	{
-		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pTexture);
+		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture);
 	}
 	else
 	{
@@ -63,10 +73,28 @@ Renderer::~Renderer()
 		m_pMesh = nullptr;
 	}
 
-	if(m_pTexture)
+	if(m_pGlossinessTexture)
 	{
-		delete m_pTexture;
-		m_pTexture = nullptr;
+		delete m_pGlossinessTexture;
+		m_pGlossinessTexture = nullptr;
+	}
+
+	if(m_pSpecularTexture)
+	{
+		delete m_pSpecularTexture;
+		m_pSpecularTexture = nullptr;
+	}
+
+	if(m_pNormalTexture)
+	{
+		delete m_pNormalTexture;
+		m_pNormalTexture = nullptr;
+	}
+
+	if(m_pDiffuseTexture)
+	{
+		delete m_pDiffuseTexture;
+		m_pDiffuseTexture = nullptr;
 	}
 
 	// 1. Render Target View
@@ -170,7 +198,7 @@ void Renderer::Render() const
 	Matrix projMatrix = m_Camera.GetProjectionMatrix();
 	Matrix worldViewProjMatrix = worldMatrix * viewMatrix * projMatrix;
 
-	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, m_CurrentSamplerFilter);
+	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture ,m_CurrentSamplerFilter);
 
 	// 3. Present backbuffer (swap)
 	m_pSwapChain->Present(0, 0);

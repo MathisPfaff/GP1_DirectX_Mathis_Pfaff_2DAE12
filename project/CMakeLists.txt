@@ -11,7 +11,8 @@ set(SOURCES
     "src/Effect.cpp"
     "src/Mesh.cpp"
     "src/Camera.h"
-  "src/Texture.cpp")
+    "src/Texture.cpp"
+    "src/BRDFs.h")
 
 # Create the executable
 add_executable(${PROJECT_NAME} ${SOURCES})

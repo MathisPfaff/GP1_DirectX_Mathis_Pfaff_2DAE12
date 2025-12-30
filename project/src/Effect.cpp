@@ -53,7 +53,12 @@ static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& asse
 
 Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile) :
 	m_pMatWorldViewProjVariable{ nullptr },
+	m_pMatWorldVariable{ nullptr },
+	m_pCameraPositionVariable{ nullptr },
 	m_pDiffuseMapVariable{ nullptr },
+	m_pNormalMapVariable{ nullptr },
+	m_pSpecularMapVariable{ nullptr },
+	m_pGlossinessMapVariable{ nullptr },
 	m_pTechniquePoint{ nullptr },
 	m_pTechniqueLinear{ nullptr },
 	m_pTechniqueAnisotropic{ nullptr }
@@ -83,13 +88,43 @@ Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile) :
 		m_pMatWorldViewProjVariable = m_pEffect->GetVariableByName("gWorldViewProj")->AsMatrix();
 		if (!m_pMatWorldViewProjVariable->IsValid())
 		{
-			std::wcout << L"Effect: Matrix variable not valid!\n";
+			std::wcout << L"Effect: WorldViewProj matrix variable not valid!\n";
+		}
+
+		m_pMatWorldVariable = m_pEffect->GetVariableByName("gWorld")->AsMatrix();
+		if (!m_pMatWorldVariable->IsValid())
+		{
+			std::wcout << L"Effect: World matrix variable not valid!\n";
+		}
+
+		m_pCameraPositionVariable = m_pEffect->GetVariableByName("gCameraPosition")->AsVector();
+		if (!m_pCameraPositionVariable->IsValid())
+		{
+			std::wcout << L"Effect: Camera position variable not valid!\n";
 		}
 
 		m_pDiffuseMapVariable = m_pEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
 		if (!m_pDiffuseMapVariable->IsValid())
 		{
 			std::wcout << L"Effect: Diffuse map variable not valid!\n";
+		}
+
+		m_pNormalMapVariable = m_pEffect->GetVariableByName("gNormalMap")->AsShaderResource();
+		if (!m_pNormalMapVariable->IsValid())
+		{
+			std::wcout << L"Effect: Normal map variable not valid!\n";
+		}
+
+		m_pSpecularMapVariable = m_pEffect->GetVariableByName("gSpecularMap")->AsShaderResource();
+		if (!m_pSpecularMapVariable->IsValid())
+		{
+			std::wcout << L"Effect: Specular map variable not valid!\n";
+		}
+
+		m_pGlossinessMapVariable = m_pEffect->GetVariableByName("gGlossinessMap")->AsShaderResource();
+		if (!m_pGlossinessMapVariable->IsValid())
+		{
+			std::wcout << L"Effect: Glossiness map variable not valid!\n";
 		}
 	}
 	else
@@ -127,9 +162,19 @@ ID3DX11EffectTechnique* Effect::GetTechnique(SamplerFilter filter) const
 	}
 }
 
-ID3DX11EffectMatrixVariable* Effect::GetMatrixVariable() const
+ID3DX11EffectMatrixVariable* Effect::GetWorldViewProjVariable() const
 {
 	return m_pMatWorldViewProjVariable;
+}
+
+ID3DX11EffectMatrixVariable* Effect::GetWorldMatrixVariable() const
+{
+	return m_pMatWorldVariable;
+}
+
+ID3DX11EffectVectorVariable* Effect::GetCameraPositionVariable() const
+{
+	return m_pCameraPositionVariable;
 }
 
 void Effect::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseTexture)
@@ -137,5 +182,29 @@ void Effect::SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseTexture)
 	if (m_pDiffuseMapVariable)
 	{
 		m_pDiffuseMapVariable->SetResource(pDiffuseTexture);
+	}
+}
+
+void Effect::SetNormalMap(ID3D11ShaderResourceView* pNormalTexture)
+{
+	if (m_pNormalMapVariable)
+	{
+		m_pNormalMapVariable->SetResource(pNormalTexture);
+	}
+}
+
+void Effect::SetSpecularMap(ID3D11ShaderResourceView* pSpecularTexture)
+{
+	if (m_pSpecularMapVariable)
+	{
+		m_pSpecularMapVariable->SetResource(pSpecularTexture);
+	}
+}
+
+void Effect::SetGlossinessMap(ID3D11ShaderResourceView* pGlossinessTexture)
+{
+	if (m_pGlossinessMapVariable)
+	{
+		m_pGlossinessMapVariable->SetResource(pGlossinessTexture);
 	}
 }

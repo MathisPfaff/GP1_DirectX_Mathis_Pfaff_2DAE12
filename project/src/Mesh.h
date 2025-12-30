@@ -33,9 +33,25 @@ struct Vertex_PosCol
 		float v;
 	};
 
+	struct Normal
+	{
+		float x;
+		float y;
+		float z;
+	};
+
+	struct Tangent
+	{
+		float x;
+		float y;
+		float z;
+	};
+
 	Position position;
 	Color color;
 	TexCoord texCoord;
+	Normal normal;
+	Tangent tangent;
 };
 
 class Mesh final
@@ -49,7 +65,7 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&&) noexcept = delete;
 
-	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, SamplerFilter filter = SamplerFilter::Point) const;
+	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, const dae::Matrix& worldMatrix, const dae::Vector3& cameraPos, Texture* pNormalMap, Texture* pSpecularMap, Texture* pGlossinessMap, SamplerFilter filter = SamplerFilter::Point) const;
 
 private:
 	ID3D11Device* m_pDevice;
@@ -61,5 +77,3 @@ private:
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
 };
-
-

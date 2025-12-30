@@ -67,6 +67,11 @@ namespace dae
 			return projMatrix;
 		}
 
+		Vector3 GetPosition() const
+		{
+			return origin;
+		}
+
 		void Update(Timer* pTimer)
 		{
 			const float deltaTime = pTimer->GetElapsed();
