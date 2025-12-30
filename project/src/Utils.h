@@ -71,14 +71,16 @@ namespace dae
 					{
 						// OBJ format uses 1-based arrays
 						file >> iPosition;
-						vertex.position.x = positions[iPosition - 1].x;
-						vertex.position.y = positions[iPosition - 1].y;
-						vertex.position.z = positions[iPosition - 1].z;
+						vertex.position = positions[iPosition - 1];
 
 						// Set default white color
-						vertex.color.r = 1.0f;
-						vertex.color.g = 1.0f;
-						vertex.color.b = 1.0f;
+						vertex.color = Vector3(1.0f, 1.0f, 1.0f);
+
+						// Initialize tangent to zero (will be accumulated during tangent calculation)
+						vertex.tangent = Vector3(0.0f, 0.0f, 0.0f);
+
+						// Initialize normal to zero (will be set if present in OBJ)
+						vertex.normal = Vector3(0.0f, 0.0f, 0.0f);
 
 						if ('/' == file.peek())//is next in buffer ==  '/' ?
 						{
@@ -88,16 +90,16 @@ namespace dae
 							{
 								// Optional texture coordinate
 								file >> iTexCoord;
-								vertex.texCoord.u = UVs[iTexCoord - 1].x;
-								vertex.texCoord.v = UVs[iTexCoord - 1].y;
+								vertex.texCoord = UVs[iTexCoord - 1];
 							}
 
 							if ('/' == file.peek())
 							{
 								file.ignore();
 
-								// Optional vertex normal (ignored for now as requested)
+								// Optional vertex normal
 								file >> iNormal;
+								vertex.normal = normals[iNormal - 1];
 							}
 						}
 
@@ -121,12 +123,44 @@ namespace dae
 				file.ignore(1000, '\n');
 			}
 
-			//Flip axis if needed
-			if(flipAxisAndWinding)
+			//Cheap Tangent Calculations
+			for (uint32_t i = 0; i < indices.size(); i += 3)
 			{
-				for (auto& v : vertices)
+				uint32_t index0 = indices[i];
+				uint32_t index1 = indices[size_t(i) + 1];
+				uint32_t index2 = indices[size_t(i) + 2];
+
+				const Vector3& p0 = vertices[index0].position;
+				const Vector3& p1 = vertices[index1].position;
+				const Vector3& p2 = vertices[index2].position;
+				const Vector2& uv0 = vertices[index0].texCoord;
+				const Vector2& uv1 = vertices[index1].texCoord;
+				const Vector2& uv2 = vertices[index2].texCoord;
+
+				const Vector3 edge0 = p1 - p0;
+				const Vector3 edge1 = p2 - p0;
+				const Vector2 diffX = Vector2(uv1.x - uv0.x, uv2.x - uv0.x);
+				const Vector2 diffY = Vector2(uv1.y - uv0.y, uv2.y - uv0.y);
+				float r = 1.f / Vector2::Cross(diffX, diffY);
+
+				Vector3 tangent = (edge0 * diffY.y - edge1 * diffY.x) * r;
+				vertices[index0].tangent += tangent;
+				vertices[index1].tangent += tangent;
+				vertices[index2].tangent += tangent;
+			}
+
+			//Finalize Tangents (reject from normal and normalize)
+			for (auto& v : vertices)
+			{
+				// Reject tangent from normal and normalize
+				v.tangent = Vector3::Reject(v.tangent, v.normal).Normalized();
+
+				// Flip axis if needed
+				if (flipAxisAndWinding)
 				{
 					v.position.z *= -1.f;
+					v.normal.z *= -1.f;
+					v.tangent.z *= -1.f;
 				}
 			}
 

@@ -159,7 +159,7 @@ Renderer::~Renderer()
 void Renderer::Update(const Timer* pTimer)
 {
 	m_Camera.Update(const_cast<Timer*>(pTimer));
-	m_MeshRotationDegrees += pTimer->GetElapsed() * 90.f;
+	m_MeshRotationDegrees += pTimer->GetElapsed() * 45.f;  // Changed from 90.f to 45.f
 }
 
 void Renderer::SetSamplerFilter(SamplerFilter filter)

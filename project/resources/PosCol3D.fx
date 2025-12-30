@@ -93,16 +93,18 @@ float3 TransformNormal(float3 sampledNormal, float3 normal, float3 tangent)
     return normalize(transformedNormal);
 }
 
-float3 LambertDiffuse(float kd, float3 cd, float cosAngle)
+float3 LambertDiffuse(float kd, float3 cd, float nDotL)
 {
-    return (cd * kd / PI) * cosAngle;
+    return (cd * kd / PI) * nDotL;
 }
 
-float3 PhongSpecular(float ks, float shininess, float3 lightDir, float3 viewDir, float3 normal)
+float3 PhongSpecular(float ks, float exp, float3 l, float3 v, float3 n)
 {
-    float3 reflectedLight = reflect(lightDir, normal);
-    float cosAngle = max(dot(reflectedLight, viewDir), 0.0f);
-    return ks * pow(cosAngle, shininess) * float3(1.0f, 1.0f, 1.0f);
+    // Calculate reflection vector using the same formula as BRDFs.h
+    // r = -l - 2 * dot(-l, n) * n
+    float3 r = -l - 2.0f * dot(-l, n) * n;
+    float cosAngle = max(dot(r, v), 0.0f);
+    return ks * pow(cosAngle, exp) * float3(1.0f, 1.0f, 1.0f);
 }
 
 //---------------------------------------------------------------
@@ -125,9 +127,41 @@ VS_OUTPUT VS(VS_INPUT input)
 //---------------------------------------------------------------
 float4 PSShading(VS_OUTPUT input, SamplerState samplerState) : SV_TARGET
 {
-    // DEBUG: Visualize UV coordinates
-    // This will show a rainbow gradient based on UV values
-    return float4(input.TexCoord.x, input.TexCoord.y, 0.5f, 1.0f);
+    // Sample all textures
+    float3 diffuseColor = gDiffuseMap.Sample(samplerState, input.TexCoord).rgb;
+    float3 sampledNormal = SampleNormalMap(gNormalMap, samplerState, input.TexCoord);
+    float specularStrength = gSpecularMap.Sample(samplerState, input.TexCoord).r;
+    float glossiness = gGlossinessMap.Sample(samplerState, input.TexCoord).r;
+    
+    // Normalize interpolated normals and tangent (these are in world space)
+    float3 normal = normalize(input.Normal);
+    float3 tangent = normalize(input.Tangent);
+    
+    // Transform normal from normal map to world space
+    normal = TransformNormal(sampledNormal, normal, tangent);
+    
+    // Light direction (pointing FROM surface TO light) - this is in world space
+    float3 l = normalize(gLightDirection);
+    
+    // View direction (FROM surface TO camera) - in world space
+    float3 v = normalize(gCameraPosition - input.WorldPosition.xyz);
+    
+    // Calculate cosine of angle between normal and light direction
+    float nDotL = max(dot(normal, l), 0.0f);
+    
+    // Calculate diffuse
+    float3 diffuse = LambertDiffuse(LIGHT_INTENSITY, diffuseColor, nDotL);
+    
+    // Calculate specular
+    float3 specular = PhongSpecular(specularStrength, glossiness * SHININESS, l, v, normal);
+    
+    // Combine diffuse and specular
+    float3 finalColor = diffuse + specular;
+    
+    // Clamp color to valid range [0, 1]
+    finalColor = saturate(finalColor);
+    
+    return float4(finalColor, 1.0f);
 }
 
 //---------------------------------------------------------------

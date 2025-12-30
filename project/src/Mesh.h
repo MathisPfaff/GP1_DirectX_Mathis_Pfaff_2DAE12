@@ -6,58 +6,28 @@
 #include <d3dcompiler.h>
 #include <d3dx11effect.h>
 #include <DirectXMath.h>
+#include "Vector2.h"
+#include "Vector3.h"
 #include "Effect.h"
 #include "Matrix.h"
 #include "Texture.h"
 
-
-struct Vertex_PosCol
+namespace dae
 {
-	struct Position
+	struct Vertex_PosCol
 	{
-		float x;
-		float y;
-		float z;
+		Vector3 position;
+		Vector3 color;
+		Vector2 texCoord;
+		Vector3 normal;
+		Vector3 tangent;
 	};
-
-	struct Color
-	{
-		float r;
-		float g;
-		float b;
-	};
-
-	struct TexCoord 
-	{
-		float u;
-		float v;
-	};
-
-	struct Normal
-	{
-		float x;
-		float y;
-		float z;
-	};
-
-	struct Tangent
-	{
-		float x;
-		float y;
-		float z;
-	};
-
-	Position position;
-	Color color;
-	TexCoord texCoord;
-	Normal normal;
-	Tangent tangent;
-};
+}
 
 class Mesh final
 {
 public:
-	Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture);
+	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture);
 	~Mesh();
 
 	Mesh(const Mesh&) = delete;
@@ -69,7 +39,7 @@ public:
 
 private:
 	ID3D11Device* m_pDevice;
-	std::vector<Vertex_PosCol> m_Vertices{};
+	std::vector<dae::Vertex_PosCol> m_Vertices{};
 	std::vector<uint32_t> m_Indices{};
 	Effect* m_pEffect;
 	Texture* m_pTexture;

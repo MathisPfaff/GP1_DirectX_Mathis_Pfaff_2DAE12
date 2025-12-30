@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
 
-Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture) :
+Mesh::Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture) :
 	m_pDevice{ pDevice },
 	m_Vertices{ vertices },
 	m_Indices{ indices },
@@ -56,7 +56,7 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex_PosCol>& vertices, co
 	//create vertex buffer
 	D3D11_BUFFER_DESC bd{};
 	bd.Usage = D3D11_USAGE_IMMUTABLE;
-	bd.ByteWidth = sizeof(Vertex_PosCol) * static_cast<uint32_t>(m_Vertices.size());
+	bd.ByteWidth = sizeof(dae::Vertex_PosCol) * static_cast<uint32_t>(m_Vertices.size());
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 	bd.MiscFlags = 0;
@@ -153,7 +153,7 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldV
 	pDeviceContext->IASetInputLayout(m_pInputLayout);
 
 	// 3. Set Vertex Buffer
-	constexpr UINT stride = sizeof(Vertex_PosCol);
+	constexpr UINT stride = sizeof(dae::Vertex_PosCol);
 	constexpr UINT offset = 0;
 	pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 
