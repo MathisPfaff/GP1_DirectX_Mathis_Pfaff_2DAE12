@@ -7,6 +7,15 @@
 static const float3 gLightDirection = { -0.577f, 0.577f, -0.577f };
 
 //---------------------------------------------------------------
+// Rasterizer States
+//---------------------------------------------------------------
+RasterizerState gRasterizerStateNoCull
+{
+    CullMode = none;
+    FrontCounterClockwise = false;
+};
+
+//---------------------------------------------------------------
 // Constant Buffer
 //---------------------------------------------------------------
 cbuffer MatrixBuffer : register(b0)
@@ -127,18 +136,31 @@ VS_OUTPUT VS(VS_INPUT input)
 //---------------------------------------------------------------
 float4 PSShading(VS_OUTPUT input, SamplerState samplerState) : SV_TARGET
 {
-    // Sample all textures
-    float3 diffuseColor = gDiffuseMap.Sample(samplerState, input.TexCoord).rgb;
-    float3 sampledNormal = SampleNormalMap(gNormalMap, samplerState, input.TexCoord);
-    float specularStrength = gSpecularMap.Sample(samplerState, input.TexCoord).r;
-    float glossiness = gGlossinessMap.Sample(samplerState, input.TexCoord).r;
+    // Sample diffuse map (required)
+    float4 diffuseColor = gDiffuseMap.Sample(samplerState, input.TexCoord);
     
-    // Normalize interpolated normals and tangent (these are in world space)
+    // Sample normal map if available, otherwise use vertex normal
+    float3 sampledNormal = float3(0.0f, 0.0f, 1.0f);
     float3 normal = normalize(input.Normal);
     float3 tangent = normalize(input.Tangent);
     
-    // Transform normal from normal map to world space
-    normal = TransformNormal(sampledNormal, normal, tangent);
+    // Check if we have a normal map by sampling it
+    float3 normalMapSample = gNormalMap.Sample(samplerState, input.TexCoord).rgb;
+    if (any(normalMapSample))
+    {
+        sampledNormal = SampleNormalMap(gNormalMap, samplerState, input.TexCoord);
+        normal = TransformNormal(sampledNormal, normal, tangent);
+    }
+    
+    // Sample specular map if available, otherwise use default
+    float specularStrength = gSpecularMap.Sample(samplerState, input.TexCoord).r;
+    
+    // Sample glossiness map if available, otherwise use default
+    float glossiness = gGlossinessMap.Sample(samplerState, input.TexCoord).r;
+    if (glossiness == 0.0f)
+    {
+        glossiness = 1.0f;
+    }
     
     // Light direction (pointing FROM surface TO light) - this is in world space
     float3 l = normalize(gLightDirection);
@@ -150,7 +172,7 @@ float4 PSShading(VS_OUTPUT input, SamplerState samplerState) : SV_TARGET
     float nDotL = max(dot(normal, l), 0.0f);
     
     // Calculate diffuse
-    float3 diffuse = LambertDiffuse(LIGHT_INTENSITY, diffuseColor, nDotL);
+    float3 diffuse = LambertDiffuse(LIGHT_INTENSITY, diffuseColor.rgb, nDotL);
     
     // Calculate specular
     float3 specular = PhongSpecular(specularStrength, glossiness * SHININESS, l, v, normal);
@@ -161,7 +183,8 @@ float4 PSShading(VS_OUTPUT input, SamplerState samplerState) : SV_TARGET
     // Clamp color to valid range [0, 1]
     finalColor = saturate(finalColor);
     
-    return float4(finalColor, 1.0f);
+    // Return with alpha from diffuse map for transparency support
+    return float4(finalColor, diffuseColor.a);
 }
 
 //---------------------------------------------------------------
@@ -183,7 +206,28 @@ float4 PSAnisotropic(VS_OUTPUT input) : SV_TARGET
 }
 
 //---------------------------------------------------------------
-// Technique
+// Fire FX Pixel Shaders (No Lighting - Just UV Sampling)
+//---------------------------------------------------------------
+float4 PSFirePoint(VS_OUTPUT input) : SV_TARGET
+{
+    // Sample diffuse map based on UV coordinates only (no lighting calculations)
+    return gDiffuseMap.Sample(samplerPoint, input.TexCoord);
+}
+
+float4 PSFireLinear(VS_OUTPUT input) : SV_TARGET
+{
+    // Sample diffuse map based on UV coordinates only (no lighting calculations)
+    return gDiffuseMap.Sample(samplerLinear, input.TexCoord);
+}
+
+float4 PSFireAnisotropic(VS_OUTPUT input) : SV_TARGET
+{
+    // Sample diffuse map based on UV coordinates only (no lighting calculations)
+    return gDiffuseMap.Sample(samplerAnisotropic, input.TexCoord);
+}
+
+//---------------------------------------------------------------
+// Techniques
 //---------------------------------------------------------------
 technique11 PointTechnique
 {
@@ -212,5 +256,38 @@ technique11 AnisotropicTechnique
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PSAnisotropic()));
+    }
+}
+
+technique11 FirePointTechnique
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateNoCull);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSFirePoint()));
+    }
+}
+
+technique11 FireLinearTechnique
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateNoCull);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSFireLinear()));
+    }
+}
+
+technique11 FireAnisotropicTechnique
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateNoCull);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSFireAnisotropic()));
     }
 }

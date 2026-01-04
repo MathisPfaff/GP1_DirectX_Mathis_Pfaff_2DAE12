@@ -27,7 +27,7 @@ namespace dae
 class Mesh final
 {
 public:
-	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture);
+	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture, bool isFireFX = false);
 	~Mesh();
 
 	Mesh(const Mesh&) = delete;
@@ -46,4 +46,5 @@ private:
 	ID3D11InputLayout* m_pInputLayout;
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
+	bool m_IsFireFX = false;
 };

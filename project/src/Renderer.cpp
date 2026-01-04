@@ -37,18 +37,19 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	m_Camera.CalculateViewMatrix();
 	m_Camera.CalculateProjectionMatrix();
 
-	// Load all textures
+	// Load vehicle textures
 	m_pDiffuseTexture = new Texture(m_pDevice, "resources/vehicle_diffuse.png");
 	m_pNormalTexture = new Texture(m_pDevice, "resources/vehicle_normal.png");
 	m_pSpecularTexture = new Texture(m_pDevice, "resources/vehicle_specular.png");
 	m_pGlossinessTexture = new Texture(m_pDevice, "resources/vehicle_gloss.png");
 
-	std::cout << "Textures loaded:\n";
+	std::cout << "Vehicle textures loaded:\n";
 	std::cout << "  Diffuse SRV: " << (m_pDiffuseTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 	std::cout << "  Normal SRV: " << (m_pNormalTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 	std::cout << "  Specular SRV: " << (m_pSpecularTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 	std::cout << "  Glossiness SRV: " << (m_pGlossinessTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 
+	// Load vehicle mesh
 	std::vector<Vertex_PosCol> vertices{};
 	std::vector<uint32_t> indices{};
 
@@ -61,11 +62,41 @@ Renderer::Renderer(SDL_Window* pWindow) :
 		std::cerr << "Failed to load vehicle mesh from OBJ file!\n";
 		m_pMesh = nullptr;
 	}
+
+	// Load fire FX texture
+	m_pFireDiffuseTexture = new Texture(m_pDevice, "resources/fireFX_diffuse.png");
+	std::cout << "Fire texture loaded: " << (m_pFireDiffuseTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
+
+	// Load fire FX mesh
+	vertices.clear();
+	indices.clear();
+
+	if (dae::Utils::ParseOBJ("resources/fireFX.obj", vertices, indices, true))
+	{
+		m_pFireMesh = new Mesh(m_pDevice, vertices, indices, m_pFireDiffuseTexture, true);
+	}
+	else
+	{
+		std::cerr << "Failed to load fire FX mesh from OBJ file!\n";
+		m_pFireMesh = nullptr;
+	}
 }
 
 Renderer::~Renderer()
 {
 	// Release resources in REVERSE order of creation
+
+	if(m_pFireMesh)
+	{
+		delete m_pFireMesh;
+		m_pFireMesh = nullptr;
+	}
+
+	if(m_pFireDiffuseTexture)
+	{
+		delete m_pFireDiffuseTexture;
+		m_pFireDiffuseTexture = nullptr;
+	}
 
 	if(m_pMesh)
 	{
@@ -159,7 +190,7 @@ Renderer::~Renderer()
 void Renderer::Update(const Timer* pTimer)
 {
 	m_Camera.Update(const_cast<Timer*>(pTimer));
-	m_MeshRotationDegrees += pTimer->GetElapsed() * 45.f;  // Changed from 90.f to 45.f
+	m_MeshRotationDegrees += pTimer->GetElapsed() * 45.f;
 }
 
 void Renderer::SetSamplerFilter(SamplerFilter filter)
@@ -190,7 +221,6 @@ void Renderer::Render() const
 	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, color);
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
-
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
 	Matrix worldMatrix = Matrix::CreateRotationY(m_MeshRotationDegrees * 3.14159f / 180.f);
 
@@ -198,7 +228,16 @@ void Renderer::Render() const
 	Matrix projMatrix = m_Camera.GetProjectionMatrix();
 	Matrix worldViewProjMatrix = worldMatrix * viewMatrix * projMatrix;
 
-	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture ,m_CurrentSamplerFilter);
+	// Render vehicle
+	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
+
+	// Render fire FX (offset position, no normal/specular/glossiness maps)
+	Matrix fireWorldMatrix = worldMatrix;
+	Matrix fireWorldViewProjMatrix = fireWorldMatrix * viewMatrix * projMatrix;
+	if (m_pFireMesh)
+	{
+		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, fireWorldMatrix, m_Camera.GetPosition(), nullptr, nullptr, nullptr, m_CurrentSamplerFilter);
+	}
 
 	// 3. Present backbuffer (swap)
 	m_pSwapChain->Present(0, 0);

@@ -1,11 +1,12 @@
 #include "Mesh.h"
 
 
-Mesh::Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture) :
+Mesh::Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture, bool isFireFX) :
 	m_pDevice{ pDevice },
 	m_Vertices{ vertices },
 	m_Indices{ indices },
-	m_pTexture{ pTexture }
+	m_pTexture{ pTexture },
+	m_IsFireFX{ isFireFX }
 {
 	m_pEffect = new Effect(pDevice, L"resources/PosCol3D.fx");
 
@@ -128,20 +129,20 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldV
 		m_pEffect->SetDiffuseMap(m_pTexture->GetShaderResourceView());
 	}
 
-	// Set the normal map
-	if (pNormalMap)
+	// Set the normal map (only for non-fireFX meshes)
+	if (!m_IsFireFX && pNormalMap)
 	{
 		m_pEffect->SetNormalMap(pNormalMap->GetShaderResourceView());
 	}
 
-	// Set the specular map
-	if (pSpecularMap)
+	// Set the specular map (only for non-fireFX meshes)
+	if (!m_IsFireFX && pSpecularMap)
 	{
 		m_pEffect->SetSpecularMap(pSpecularMap->GetShaderResourceView());
 	}
 
-	// Set the glossiness map
-	if (pGlossinessMap)
+	// Set the glossiness map (only for non-fireFX meshes)
+	if (!m_IsFireFX && pGlossinessMap)
 	{
 		m_pEffect->SetGlossinessMap(pGlossinessMap->GetShaderResourceView());
 	}
@@ -160,12 +161,36 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldV
 	// 4. Set Index Buffer
 	pDeviceContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	// 5. Draw
+	// 5. Draw using appropriate technique based on mesh type
+	ID3DX11EffectTechnique* pTechnique = nullptr;
+	
+	if (m_IsFireFX)
+	{
+		// Use fire techniques with no-cull rasterizer state
+		switch (filter)
+		{
+		case SamplerFilter::Point:
+			pTechnique = m_pEffect->GetEffect()->GetTechniqueByName("FirePointTechnique");
+			break;
+		case SamplerFilter::Linear:
+			pTechnique = m_pEffect->GetEffect()->GetTechniqueByName("FireLinearTechnique");
+			break;
+		case SamplerFilter::Anisotropic:
+			pTechnique = m_pEffect->GetEffect()->GetTechniqueByName("FireAnisotropicTechnique");
+			break;
+		}
+	}
+	else
+	{
+		// Use standard techniques
+		pTechnique = m_pEffect->GetTechnique(filter);
+	}
+
 	D3DX11_TECHNIQUE_DESC techDesc{};
-	m_pEffect->GetTechnique(filter)->GetDesc(&techDesc);
+	pTechnique->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
-		m_pEffect->GetTechnique(filter)->GetPassByIndex(p)->Apply(0, pDeviceContext);
+		pTechnique->GetPassByIndex(p)->Apply(0, pDeviceContext);
 		pDeviceContext->DrawIndexed(static_cast<UINT>(m_Indices.size()), 0, 0);
 	}
 }
