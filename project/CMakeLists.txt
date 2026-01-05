@@ -9,6 +9,7 @@ set(SOURCES
     "src/Vector3.cpp"
     "src/Vector4.cpp"
     "src/Effect.cpp"
+    "src/FireEffect.cpp"
     "src/Mesh.cpp"
     "src/Camera.h"
     "src/Texture.cpp"

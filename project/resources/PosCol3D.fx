@@ -16,6 +16,40 @@ RasterizerState gRasterizerStateNoCull
 };
 
 //---------------------------------------------------------------
+// Blend States
+//---------------------------------------------------------------
+BlendState gBlendStateAlpha
+{
+    BlendEnable[0] = true;
+    SrcBlend = src_alpha;
+    DestBlend = inv_src_alpha;
+    BlendOp = add;
+    SrcBlendAlpha = zero;
+    DestBlendAlpha = zero;
+    BlendOpAlpha = add;
+    RenderTargetWriteMask[0] = 0x0F;
+};
+
+//---------------------------------------------------------------
+// Depth Stencil States
+//---------------------------------------------------------------
+DepthStencilState gDepthStencilStateOpaque
+{
+    DepthEnable = true;
+    DepthWriteMask = 1;
+    DepthFunc = less;
+    StencilEnable = false;
+};
+
+DepthStencilState gDepthStencilStateTransparent
+{
+    DepthEnable = true;
+    DepthWriteMask = 0; // Don't write to depth buffer for transparent objects
+    DepthFunc = less;
+    StencilEnable = false;
+};
+
+//---------------------------------------------------------------
 // Constant Buffer
 //---------------------------------------------------------------
 cbuffer MatrixBuffer : register(b0)
@@ -206,33 +240,38 @@ float4 PSAnisotropic(VS_OUTPUT input) : SV_TARGET
 }
 
 //---------------------------------------------------------------
-// Fire FX Pixel Shaders (No Lighting - Just UV Sampling)
+// Fire FX Pixel Shaders (No Lighting - Just UV Sampling with Alpha)
 //---------------------------------------------------------------
 float4 PSFirePoint(VS_OUTPUT input) : SV_TARGET
 {
     // Sample diffuse map based on UV coordinates only (no lighting calculations)
-    return gDiffuseMap.Sample(samplerPoint, input.TexCoord);
+    // Fire texture should have alpha channel for transparency
+    float4 fireColor = gDiffuseMap.Sample(samplerPoint, input.TexCoord);
+    return fireColor;
 }
 
 float4 PSFireLinear(VS_OUTPUT input) : SV_TARGET
 {
     // Sample diffuse map based on UV coordinates only (no lighting calculations)
-    return gDiffuseMap.Sample(samplerLinear, input.TexCoord);
+    float4 fireColor = gDiffuseMap.Sample(samplerLinear, input.TexCoord);
+    return fireColor;
 }
 
 float4 PSFireAnisotropic(VS_OUTPUT input) : SV_TARGET
 {
     // Sample diffuse map based on UV coordinates only (no lighting calculations)
-    return gDiffuseMap.Sample(samplerAnisotropic, input.TexCoord);
+    float4 fireColor = gDiffuseMap.Sample(samplerAnisotropic, input.TexCoord);
+    return fireColor;
 }
 
 //---------------------------------------------------------------
-// Techniques
+// Techniques for Vehicle (Opaque)
 //---------------------------------------------------------------
 technique11 PointTechnique
 {
     pass P0
     {
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PSPoint()));
@@ -243,6 +282,7 @@ technique11 LinearTechnique
 {
     pass P0
     {
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PSLinear()));
@@ -253,17 +293,23 @@ technique11 AnisotropicTechnique
 {
     pass P0
     {
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PSAnisotropic()));
     }
 }
 
+//---------------------------------------------------------------
+// Techniques for Fire FX (Transparent)
+//---------------------------------------------------------------
 technique11 FirePointTechnique
 {
     pass P0
     {
         SetRasterizerState(gRasterizerStateNoCull);
+        SetBlendState(gBlendStateAlpha, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+        SetDepthStencilState(gDepthStencilStateTransparent, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PSFirePoint()));
@@ -275,6 +321,8 @@ technique11 FireLinearTechnique
     pass P0
     {
         SetRasterizerState(gRasterizerStateNoCull);
+        SetBlendState(gBlendStateAlpha, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+        SetDepthStencilState(gDepthStencilStateTransparent, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PSFireLinear()));
@@ -286,6 +334,8 @@ technique11 FireAnisotropicTechnique
     pass P0
     {
         SetRasterizerState(gRasterizerStateNoCull);
+        SetBlendState(gBlendStateAlpha, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+        SetDepthStencilState(gDepthStencilStateTransparent, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
         SetPixelShader(CompileShader(ps_5_0, PSFireAnisotropic()));

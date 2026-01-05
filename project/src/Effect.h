@@ -19,7 +19,7 @@ class Effect
 {
 public:
 	Effect(ID3D11Device* pDevice, const std::wstring& assetFile);
-	~Effect();
+	virtual ~Effect();
 
 	Effect(const Effect&) = delete;
 	Effect(Effect&&) noexcept = delete;
@@ -32,12 +32,12 @@ public:
 	ID3DX11EffectMatrixVariable* GetWorldMatrixVariable() const;
 	ID3DX11EffectVectorVariable* GetCameraPositionVariable() const;
 
-	void SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseTexture);
-	void SetNormalMap(ID3D11ShaderResourceView* pNormalTexture);
-	void SetSpecularMap(ID3D11ShaderResourceView* pSpecularTexture);
-	void SetGlossinessMap(ID3D11ShaderResourceView* pGlossinessTexture);
+	virtual void SetDiffuseMap(ID3D11ShaderResourceView* pDiffuseTexture);
+	virtual void SetNormalMap(ID3D11ShaderResourceView* pNormalTexture);
+	virtual void SetSpecularMap(ID3D11ShaderResourceView* pSpecularTexture);
+	virtual void SetGlossinessMap(ID3D11ShaderResourceView* pGlossinessTexture);
 
-private:
+protected:
 	ID3DX11Effect* m_pEffect;
 	ID3DX11EffectTechnique* m_pTechniquePoint;
 	ID3DX11EffectTechnique* m_pTechniqueLinear;
