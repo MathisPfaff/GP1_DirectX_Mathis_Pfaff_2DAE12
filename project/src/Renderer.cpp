@@ -55,7 +55,11 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 	if (dae::Utils::ParseOBJ("resources/vehicle.obj", vertices, indices, true))
 	{
-		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture);
+		// Create shared effect ONCE
+		m_pSharedEffect = new Effect(m_pDevice, L"resources/PosCol3D.fx");
+
+		// Pass shared effect to meshes instead of each creating their own
+		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture, m_pSharedEffect);
 	}
 	else
 	{
@@ -73,7 +77,7 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 	if (dae::Utils::ParseOBJ("resources/fireFX.obj", vertices, indices, true))
 	{
-		m_pFireMesh = new Mesh(m_pDevice, vertices, indices, m_pFireDiffuseTexture, true);
+		m_pFireMesh = new Mesh(m_pDevice, vertices, indices, m_pFireDiffuseTexture, m_pSharedEffect, true);
 	}
 	else
 	{
@@ -126,6 +130,13 @@ Renderer::~Renderer()
 	{
 		delete m_pDiffuseTexture;
 		m_pDiffuseTexture = nullptr;
+	}
+
+	// Release shared effect
+	if(m_pSharedEffect)
+	{
+		delete m_pSharedEffect;
+		m_pSharedEffect = nullptr;
 	}
 
 	// 1. Render Target View
@@ -222,18 +233,24 @@ void Renderer::Render() const
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
 	// 2. Set Pipeline + Invoke Draw Calls (=render)
+	// Pre-compute matrices outside the loop to avoid redundant calculations
 	Matrix worldMatrix = Matrix::CreateRotationY(m_MeshRotationDegrees * 3.14159f / 180.f);
 
+	// View and projection matrices are already cached in camera (from previous update)
 	Matrix viewMatrix = m_Camera.GetViewMatrix();
 	Matrix projMatrix = m_Camera.GetProjectionMatrix();
-	Matrix worldViewProjMatrix = worldMatrix * viewMatrix * projMatrix;
+	
+	// Pre-multiply view * proj to avoid doing it per mesh
+	Matrix viewProjMatrix = viewMatrix * projMatrix;
+	Matrix worldViewProjMatrix = worldMatrix * viewProjMatrix;
 
 	// Render vehicle
 	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
 
 	// Render fire FX (offset position, no normal/specular/glossiness maps)
+	// Just multiply world with pre-computed viewProj
 	Matrix fireWorldMatrix = worldMatrix;
-	Matrix fireWorldViewProjMatrix = fireWorldMatrix * viewMatrix * projMatrix;
+	Matrix fireWorldViewProjMatrix = fireWorldMatrix * viewProjMatrix;
 	if (m_pFireMesh)
 	{
 		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, fireWorldMatrix, m_Camera.GetPosition(), nullptr, nullptr, nullptr, m_CurrentSamplerFilter);

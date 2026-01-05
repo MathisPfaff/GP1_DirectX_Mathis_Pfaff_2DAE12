@@ -27,7 +27,7 @@ namespace dae
 class Mesh final
 {
 public:
-	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture, bool isFireFX = false);
+	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture, Effect* pSharedEffect, bool isFireFX = false); // Add Effect parameter
 	~Mesh();
 
 	Mesh(const Mesh&) = delete;
@@ -41,10 +41,11 @@ private:
 	ID3D11Device* m_pDevice;
 	std::vector<dae::Vertex_PosCol> m_Vertices{};
 	std::vector<uint32_t> m_Indices{};
-	Effect* m_pEffect;
+	Effect* m_pEffect; // Now points to shared effect (don't delete!)
 	Texture* m_pTexture;
 	ID3D11InputLayout* m_pInputLayout;
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
 	bool m_IsFireFX = false;
+	bool m_bOwnEffect = false; // Track if we own it
 };

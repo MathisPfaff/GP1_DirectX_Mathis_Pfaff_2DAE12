@@ -71,5 +71,8 @@ namespace dae
 		// Fire FX mesh and texture
 		Mesh* m_pFireMesh{};
 		Texture* m_pFireDiffuseTexture{};
+
+		// Shared effect
+		Effect* m_pSharedEffect{};
 	};
 }

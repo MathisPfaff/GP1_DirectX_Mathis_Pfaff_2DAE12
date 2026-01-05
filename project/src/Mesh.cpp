@@ -1,14 +1,18 @@
 #include "Mesh.h"
 
 
-Mesh::Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture, bool isFireFX) :
-	m_pDevice{ pDevice },
-	m_Vertices{ vertices },
-	m_Indices{ indices },
-	m_pTexture{ pTexture },
-	m_IsFireFX{ isFireFX }
+Mesh::Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, 
+           const std::vector<uint32_t>& indices, Texture* pTexture, 
+           Effect* pSharedEffect, bool isFireFX) :
+    m_pDevice{ pDevice },
+    m_Vertices{ vertices },
+    m_Indices{ indices },
+    m_pTexture{ pTexture },
+    m_IsFireFX{ isFireFX },
+    m_pEffect{ pSharedEffect },  // Use shared effect
+    m_bOwnEffect{ false }  // We don't own this
 {
-	m_pEffect = new Effect(pDevice, L"resources/PosCol3D.fx");
+    // Remove: m_pEffect = new Effect(pDevice, L"resources/PosCol3D.fx");
 
 	// create vertex layout
 	static constexpr uint32_t numElements{ 5 };
@@ -103,7 +107,8 @@ Mesh::~Mesh()
 		m_pInputLayout = nullptr;
 	}
 
-	if (m_pEffect)
+	// Only delete if we own it
+	if(m_pEffect && m_bOwnEffect)
 	{
 		delete m_pEffect;
 		m_pEffect = nullptr;
