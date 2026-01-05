@@ -27,7 +27,9 @@ namespace dae
 class Mesh final
 {
 public:
-	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, const std::vector<uint32_t>& indices, Texture* pTexture, Effect* pSharedEffect, bool isFireFX = false); // Add Effect parameter
+	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, 
+		 const std::vector<uint32_t>& indices, Texture* pTexture, 
+		 Effect* pSharedEffect, bool isFireFX = false);
 	~Mesh();
 
 	Mesh(const Mesh&) = delete;
@@ -35,17 +37,34 @@ public:
 	Mesh& operator=(const Mesh&) = delete;
 	Mesh& operator=(Mesh&&) noexcept = delete;
 
-	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, const dae::Matrix& worldMatrix, const dae::Vector3& cameraPos, Texture* pNormalMap, Texture* pSpecularMap, Texture* pGlossinessMap, SamplerFilter filter = SamplerFilter::Point) const;
+	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, 
+	           const dae::Matrix& worldMatrix, const dae::Vector3& cameraPos, 
+	           Texture* pNormalMap, Texture* pSpecularMap, Texture* pGlossinessMap, 
+	           SamplerFilter filter = SamplerFilter::Point) const;
+
+	bool IsFireFX() const { return m_IsFireFX; }
+	bool HasValidTexture() const { return m_pTexture != nullptr; }
 
 private:
+	// Core DirectX resources
 	ID3D11Device* m_pDevice;
-	std::vector<dae::Vertex_PosCol> m_Vertices{};
-	std::vector<uint32_t> m_Indices{};
-	Effect* m_pEffect; // Now points to shared effect (don't delete!)
-	Texture* m_pTexture;
 	ID3D11InputLayout* m_pInputLayout;
 	ID3D11Buffer* m_pVertexBuffer;
 	ID3D11Buffer* m_pIndexBuffer;
+
+	// Mesh data
+	std::vector<dae::Vertex_PosCol> m_Vertices{};
+	uint32_t m_NumIndices{ 0 };
+
+	// References (not owned)
+	Effect* m_pEffect;
+	Texture* m_pTexture;
+
+	// Flags
 	bool m_IsFireFX = false;
-	bool m_bOwnEffect = false; // Track if we own it
+	bool m_bOwnEffect = false;
+
+	// Helper functions
+	void SetupTechnique(ID3D11DeviceContext* pDeviceContext, SamplerFilter filter) const;
+	void BindTextures(const Texture* pNormalMap, const Texture* pSpecularMap, const Texture* pGlossinessMap) const;
 };

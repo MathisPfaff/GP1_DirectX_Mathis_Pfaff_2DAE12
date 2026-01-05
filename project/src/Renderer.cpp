@@ -4,6 +4,7 @@
 
 // Standard includes
 #include <iostream>
+#include <cassert>
 
 //Project includes
 #include "Renderer.h"
@@ -30,6 +31,7 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	else
 	{
 		std::cout << "DirectX initialization failed!\n";
+		return;
 	}
 
 	// Initialize camera
@@ -43,11 +45,21 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	m_pSpecularTexture = new Texture(m_pDevice, "resources/vehicle_specular.png");
 	m_pGlossinessTexture = new Texture(m_pDevice, "resources/vehicle_gloss.png");
 
+	// Validate vehicle textures
+	if (!m_pDiffuseTexture->GetShaderResourceView())
+	{
+		std::cerr << "Failed to load vehicle diffuse texture!\n";
+	}
+
 	std::cout << "Vehicle textures loaded:\n";
 	std::cout << "  Diffuse SRV: " << (m_pDiffuseTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 	std::cout << "  Normal SRV: " << (m_pNormalTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 	std::cout << "  Specular SRV: " << (m_pSpecularTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
 	std::cout << "  Glossiness SRV: " << (m_pGlossinessTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
+
+	// Create shared effect ONCE before creating meshes
+	m_pSharedEffect = new Effect(m_pDevice, L"resources/PosCol3D.fx");
+	assert(m_pSharedEffect != nullptr && "Failed to create shared effect");
 
 	// Load vehicle mesh
 	std::vector<Vertex_PosCol> vertices{};
@@ -55,11 +67,8 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 	if (dae::Utils::ParseOBJ("resources/vehicle.obj", vertices, indices, true))
 	{
-		// Create shared effect ONCE
-		m_pSharedEffect = new Effect(m_pDevice, L"resources/PosCol3D.fx");
-
-		// Pass shared effect to meshes instead of each creating their own
-		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture, m_pSharedEffect);
+		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture, m_pSharedEffect, false);
+		std::cout << "Vehicle mesh loaded successfully\n";
 	}
 	else
 	{
@@ -69,7 +78,15 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 	// Load fire FX texture
 	m_pFireDiffuseTexture = new Texture(m_pDevice, "resources/fireFX_diffuse.png");
-	std::cout << "Fire texture loaded: " << (m_pFireDiffuseTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
+	
+	if (!m_pFireDiffuseTexture->GetShaderResourceView())
+	{
+		std::cerr << "Warning: Fire FX texture not found. Fire effect will not render.\n";
+	}
+	else
+	{
+		std::cout << "Fire FX texture loaded successfully\n";
+	}
 
 	// Load fire FX mesh
 	vertices.clear();
@@ -78,10 +95,11 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	if (dae::Utils::ParseOBJ("resources/fireFX.obj", vertices, indices, true))
 	{
 		m_pFireMesh = new Mesh(m_pDevice, vertices, indices, m_pFireDiffuseTexture, m_pSharedEffect, true);
+		std::cout << "Fire FX mesh loaded successfully\n";
 	}
 	else
 	{
-		std::cerr << "Failed to load fire FX mesh from OBJ file!\n";
+		std::cerr << "Warning: Fire FX mesh not found. Fire effect will not render.\n";
 		m_pFireMesh = nullptr;
 	}
 }
@@ -90,22 +108,24 @@ Renderer::~Renderer()
 {
 	// Release resources in REVERSE order of creation
 
+	// Meshes first (they reference shared effect)
 	if(m_pFireMesh)
 	{
 		delete m_pFireMesh;
 		m_pFireMesh = nullptr;
 	}
 
-	if(m_pFireDiffuseTexture)
-	{
-		delete m_pFireDiffuseTexture;
-		m_pFireDiffuseTexture = nullptr;
-	}
-
 	if(m_pMesh)
 	{
 		delete m_pMesh;
 		m_pMesh = nullptr;
+	}
+
+	// Then textures
+	if(m_pFireDiffuseTexture)
+	{
+		delete m_pFireDiffuseTexture;
+		m_pFireDiffuseTexture = nullptr;
 	}
 
 	if(m_pGlossinessTexture)
@@ -132,49 +152,44 @@ Renderer::~Renderer()
 		m_pDiffuseTexture = nullptr;
 	}
 
-	// Release shared effect
+	// Shared effect (used by meshes, so delete last)
 	if(m_pSharedEffect)
 	{
 		delete m_pSharedEffect;
 		m_pSharedEffect = nullptr;
 	}
 
-	// 1. Render Target View
+	// DirectX resources
 	if (m_pRenderTargetView)
 	{
 		m_pRenderTargetView->Release();
 		m_pRenderTargetView = nullptr;
 	}
 
-	// 2. Render Target Buffer
 	if (m_pRenderTargetBuffer)
 	{
 		m_pRenderTargetBuffer->Release();
 		m_pRenderTargetBuffer = nullptr;
 	}
 
-	// 3. Depth Stencil View
 	if (m_pDepthStencilView)
 	{
 		m_pDepthStencilView->Release();
 		m_pDepthStencilView = nullptr;
 	}
 
-	// 4. Depth Stencil Buffer
 	if (m_pDepthStencilBuffer)
 	{
 		m_pDepthStencilBuffer->Release();
 		m_pDepthStencilBuffer = nullptr;
 	}
 
-	// 5. Swap Chain
 	if (m_pSwapChain)
 	{
 		m_pSwapChain->Release();
 		m_pSwapChain = nullptr;
 	}
 
-	// 6. Device Context
 	if (m_pDeviceContext)
 	{
 		m_pDeviceContext->ClearState();
@@ -183,14 +198,12 @@ Renderer::~Renderer()
 		m_pDeviceContext = nullptr;
 	}
 
-	// 7. Device
 	if (m_pDevice)
 	{
 		m_pDevice->Release();
 		m_pDevice = nullptr;
 	}
 
-	// 8. DXGI Factory
 	if (m_pDXGIFactory)
 	{
 		m_pDXGIFactory->Release();
@@ -224,7 +237,7 @@ void Renderer::SetSamplerFilter(SamplerFilter filter)
 
 void Renderer::Render() const
 {
-	if (!m_IsInitialized)
+	if (!m_IsInitialized || !m_pMesh)
 		return;
 
 	// 1. Clear RTV and DSV
@@ -232,28 +245,27 @@ void Renderer::Render() const
 	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, color);
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
-	// 2. Set Pipeline + Invoke Draw Calls (=render)
-	// Pre-compute matrices outside the loop to avoid redundant calculations
+	// 2. Set Pipeline + Invoke Draw Calls
+	// Pre-compute matrices to avoid redundant calculations
 	Matrix worldMatrix = Matrix::CreateRotationY(m_MeshRotationDegrees * 3.14159f / 180.f);
-
-	// View and projection matrices are already cached in camera (from previous update)
 	Matrix viewMatrix = m_Camera.GetViewMatrix();
 	Matrix projMatrix = m_Camera.GetProjectionMatrix();
-	
-	// Pre-multiply view * proj to avoid doing it per mesh
 	Matrix viewProjMatrix = viewMatrix * projMatrix;
 	Matrix worldViewProjMatrix = worldMatrix * viewProjMatrix;
 
-	// Render vehicle
-	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
+	// IMPORTANT: Render vehicle FIRST (opaque)
+	// This writes to the depth buffer so transparent fire is rendered correctly behind it
+	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), 
+	                 m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
 
-	// Render fire FX (offset position, no normal/specular/glossiness maps)
-	// Just multiply world with pre-computed viewProj
-	Matrix fireWorldMatrix = worldMatrix;
-	Matrix fireWorldViewProjMatrix = fireWorldMatrix * viewProjMatrix;
-	if (m_pFireMesh)
+	// IMPORTANT: Render fire SECOND (transparent)
+	// Fire uses blend states and doesn't write to depth buffer
+	// Render only if fire mesh is valid and has texture
+	if (m_pFireMesh && m_pFireDiffuseTexture && m_pFireDiffuseTexture->GetShaderResourceView())
 	{
-		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, fireWorldMatrix, m_Camera.GetPosition(), nullptr, nullptr, nullptr, m_CurrentSamplerFilter);
+		Matrix fireWorldViewProjMatrix = worldMatrix * viewProjMatrix;
+		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), 
+		                     nullptr, nullptr, nullptr, m_CurrentSamplerFilter);
 	}
 
 	// 3. Present backbuffer (swap)
