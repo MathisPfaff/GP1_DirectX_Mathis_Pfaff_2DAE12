@@ -516,29 +516,9 @@ void S_Renderer::DrawBoundingBox(const Mesh& mesh)
 void S_Renderer::SetCullMode(CullMode cullMode)
 {
 	m_CullMode = cullMode;
-	switch (m_CullMode)
-	{
-	case CullMode::BackFace:
-		std::cout << "Software Renderer: Cull mode set to Back-face\n";
-		break;
-	case CullMode::FrontFace:
-		std::cout << "Software Renderer: Cull mode set to Front-face\n";
-		break;
-	case CullMode::None:
-		std::cout << "Software Renderer: Cull mode set to None\n";
-		break;
-	}
 }
 
 void S_Renderer::SetUniformClearColor(bool useUniform)
 {
 	m_UseUniformClearColor = useUniform;
-	if (m_UseUniformClearColor)
-	{
-		std::cout << "Software Renderer: Clear color set to Uniform {0.1f, 0.1f, 0.1f}\n";
-	}
-	else
-	{
-		std::cout << "Software Renderer: Clear color set to Different colors\n";
-	}
 }

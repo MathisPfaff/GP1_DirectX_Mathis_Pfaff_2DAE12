@@ -72,6 +72,23 @@ int main(int argc, char* args[])
 	// Clear color state
 	bool useUniformColor = false;
 
+	std::cout << "\033[33m[Key Bindings - SHARED]\033[0m\n";
+	std::cout << "\033[33m   [F1]  Toggle Rasterizer Mode (HARDWARE/SOFTWARE)\033[0m\n";
+	std::cout << "\033[33m   [F2]  Toggle Vehicle Rotation (ON/OFF)\033[0m\n";
+	std::cout << "\033[33m   [F9]  Cycle CullMode (BACK/FRONT/NONE)\033[0m\n";
+	std::cout << "\033[33m   [F10] Toggle Uniform ClearColor (ON/OFF)\033[0m\n";
+	std::cout << "\033[33m   [F11] Toggle Print FPS (ON/OFF)\033[0m\n\n";
+
+	std::cout << "\033[32m[Key Bindings - HARDWARE]\033[0m\n";
+	std::cout << "\033[32m   [F3]  Toggle FireFX (ON/OFF)\033[0m\n";
+	std::cout << "\033[32m   [F4]  Cycle Sampler State (POINT/LINEAR/ANISOTROPIC)\033[0m\n\n";
+
+	std::cout << "\033[35m[Key Bindings - SOFTWARE]\033[0m\n";
+	std::cout << "\033[35m   [F5]  Cycle Shading Mode (COMBINED/OBSERVED_AREA/DIFFUSE/SPECULAR)\033[0m\n";
+	std::cout << "\033[35m   [F6]  Toggle NormalMap (ON/OFF)\033[0m\n";
+	std::cout << "\033[35m   [F7]  Toggle DepthBuffer Visualization (ON/OFF)\033[0m\n";
+	std::cout << "\033[35m   [F8]  Toggle BoundingBox Visualization (ON/OFF)\033[0m\n\n";
+
 	while (isLooping)
 	{
 		//--------- Get input events ---------
@@ -140,7 +157,7 @@ int main(int argc, char* args[])
 				if (e.key.keysym.scancode == SDL_SCANCODE_F11)
 				{
 					printFPS = !printFPS;
-					std::cout << "FPS printing -> " << (printFPS ? "On" : "Off") << std::endl;
+					std::cout << "** F11 KEY ** FPS printing -> " << (printFPS ? "On" : "Off") << std::endl;
 				}
 				break;
 			default: ;

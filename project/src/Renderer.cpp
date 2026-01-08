@@ -33,7 +33,6 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	try
 	{
 		m_pDirectXRenderer = std::make_unique<D_Renderer>(pWindow, &m_Camera, &m_MeshRotationRadians);
-		std::cout << "DirectX renderer initialized successfully\n";
 	}
 	catch (const std::exception& e)
 	{
@@ -44,7 +43,6 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	try
 	{
 		m_pSoftwareRenderer = std::make_unique<S_Renderer>(pWindow, &m_Camera, &m_MeshRotationRadians);
-		std::cout << "Software renderer initialized successfully\n";
 	}
 	catch (const std::exception& e)
 	{
@@ -56,7 +54,6 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	if (!m_pDirectXRenderer && m_pSoftwareRenderer)
 	{
 		m_CurrentRenderer = RendererType::Software;
-		std::cout << "Switched to Software renderer due to DirectX initialization failure\n";
 	}
 }
 
@@ -102,6 +99,21 @@ void Renderer::Render() const
 
 void Renderer::SetSamplerFilter(SamplerFilter filter)
 {
+	std::cout << "** F4 KEY ** Sampler Filter changed to: ";
+	switch (filter)
+	{
+	case SamplerFilter::Point:
+		std::cout << "Point";
+		break;
+	case SamplerFilter::Linear:
+		std::cout << "Linear";
+		break;
+	case SamplerFilter::Anisotropic:
+		std::cout << "Anisotropic";
+		break;
+	}
+	std::cout << std::endl;
+
 	if (m_CurrentRenderer == RendererType::DirectX && m_pDirectXRenderer)
 	{
 		m_pDirectXRenderer->SetSamplerFilter(filter);
@@ -115,11 +127,7 @@ void Renderer::SwitchRenderer()
 		if (m_pSoftwareRenderer)
 		{
 			m_CurrentRenderer = RendererType::Software;
-			std::cout << "Switched to Software renderer\n";
-		}
-		else
-		{
-			std::cout << "Software renderer not available\n";
+			std::cout << "** F1 KEY ** Renderer switched to: Software Renderer" << std::endl;
 		}
 	}
 	else
@@ -127,11 +135,7 @@ void Renderer::SwitchRenderer()
 		if (m_pDirectXRenderer)
 		{
 			m_CurrentRenderer = RendererType::DirectX;
-			std::cout << "Switched to DirectX renderer\n";
-		}
-		else
-		{
-			std::cout << "DirectX renderer not available\n";
+			std::cout << "** F1 KEY ** Renderer switched to: DirectX Renderer" << std::endl;
 		}
 	}
 }
@@ -139,12 +143,14 @@ void Renderer::SwitchRenderer()
 void Renderer::Changerotation()
 {
 	m_RotateMesh = !m_RotateMesh;
+	std::cout << "** F2 KEY ** Mesh rotation: " << (m_RotateMesh ? "ON" : "OFF") << std::endl;
 }
 
 void Renderer::ToggleFireMesh()
 {
 	if (m_CurrentRenderer == RendererType::DirectX && m_pDirectXRenderer)
 	{
+		std::cout << "** F3 KEY ** ";
 		m_pDirectXRenderer->ToggleFireMesh();
 	}
 }
@@ -153,6 +159,7 @@ void Renderer::CycleShadingMode()
 {
 	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
 	{
+		std::cout << "** F5 KEY ** ";
 		m_pSoftwareRenderer->CycleShadingMode();
 	}
 }
@@ -161,6 +168,7 @@ void Renderer::ToggleNormalMap()
 {
 	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
 	{
+		std::cout << "** F6 KEY ** ";
 		m_pSoftwareRenderer->ToggleNormalMap();
 	}
 }
@@ -169,6 +177,7 @@ void Renderer::ToggleDepthBuffer()
 {
 	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
 	{
+		std::cout << "** F7 KEY ** ";
 		m_pSoftwareRenderer->SwitchDepthBuffer();
 	}
 }
@@ -177,27 +186,31 @@ void Renderer::ToggleBoundingBox()
 {
 	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
 	{
+		std::cout << "** F8 KEY ** ";
 		m_pSoftwareRenderer->ToggleBoundingBox();
 	}
 }
 
 void Renderer::CycleCullMode()
 {
+	std::string cullModeName;
 	switch (m_CurrentCullMode)
 	{
 	case CullMode::BackFace:
 		m_CurrentCullMode = CullMode::FrontFace;
-		std::cout << "Cull mode -> Front-face\n";
+		cullModeName = "Front Face";
 		break;
 	case CullMode::FrontFace:
 		m_CurrentCullMode = CullMode::None;
-		std::cout << "Cull mode -> None\n";
+		cullModeName = "None";
 		break;
 	case CullMode::None:
 		m_CurrentCullMode = CullMode::BackFace;
-		std::cout << "Cull mode -> Back-face\n";
+		cullModeName = "Back Face";
 		break;
 	}
+
+	std::cout << "** F9 KEY ** Cull Mode changed to: " << cullModeName << std::endl;
 
 	// Apply cull mode to both renderers
 	if (m_pDirectXRenderer)
@@ -213,7 +226,7 @@ void Renderer::CycleCullMode()
 void Renderer::ToggleClearColor()
 {
 	m_UseUniformClearColor = !m_UseUniformClearColor;
-	std::cout << "Clear color -> " << (m_UseUniformClearColor ? "Uniform {0.1f, 0.1f, 0.1f}" : "Different colors") << "\n";
+	std::cout << "** F10 KEY ** Uniform Clear Color: " << (m_UseUniformClearColor ? "ON" : "OFF") << std::endl;
 
 	// Apply clear color settings to both renderers
 	if (m_pDirectXRenderer)

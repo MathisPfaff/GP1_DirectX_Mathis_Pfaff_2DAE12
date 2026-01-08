@@ -27,11 +27,9 @@ D_Renderer::D_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshR
 	if (result == S_OK)
 	{
 		m_IsInitialized = true;
-		std::cout << "DirectX is initialized and ready!\n";
 	}
 	else
 	{
-		std::cout << "DirectX initialization failed!\n";
 		return;
 	}
 
@@ -47,12 +45,6 @@ D_Renderer::D_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshR
 		std::cerr << "Failed to load vehicle diffuse texture!\n";
 	}
 
-	std::cout << "Vehicle textures loaded:\n";
-	std::cout << "  Diffuse SRV: " << (m_pDiffuseTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
-	std::cout << "  Normal SRV: " << (m_pNormalTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
-	std::cout << "  Specular SRV: " << (m_pSpecularTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
-	std::cout << "  Glossiness SRV: " << (m_pGlossinessTexture->GetShaderResourceView() != nullptr ? "Valid" : "NULL") << "\n";
-
 	// Create shared effect ONCE before creating meshes
 	m_pSharedEffect = new Effect(m_pDevice, L"resources/PosCol3D.fx");
 	assert(m_pSharedEffect != nullptr && "Failed to create shared effect");
@@ -64,7 +56,6 @@ D_Renderer::D_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshR
 	if (dae::Utils::ParseOBJ("resources/vehicle.obj", vertices, indices, true))
 	{
 		m_pMesh = new D_Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture, m_pSharedEffect, false);
-		std::cout << "Vehicle mesh loaded successfully\n";
 	}
 	else
 	{
@@ -79,10 +70,6 @@ D_Renderer::D_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshR
 	{
 		std::cerr << "Warning: Fire FX texture not found. Fire effect will not render.\n";
 	}
-	else
-	{
-		std::cout << "Fire FX texture loaded successfully\n";
-	}
 
 	// Load fire FX mesh
 	vertices.clear();
@@ -91,7 +78,6 @@ D_Renderer::D_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshR
 	if (dae::Utils::ParseOBJ("resources/fireFX.obj", vertices, indices, true))
 	{
 		m_pFireMesh = new D_Mesh(m_pDevice, vertices, indices, m_pFireDiffuseTexture, m_pSharedEffect, true);
-		std::cout << "Fire FX mesh loaded successfully\n";
 	}
 	else
 	{
@@ -219,13 +205,10 @@ void D_Renderer::SetSamplerFilter(SamplerFilter filter)
 	switch (filter)
 	{
 	case SamplerFilter::Point:
-		std::cout << "Switched to Point filtering\n";
 		break;
 	case SamplerFilter::Linear:
-		std::cout << "Switched to Linear filtering\n";
 		break;
 	case SamplerFilter::Anisotropic:
-		std::cout << "Switched to Anisotropic filtering\n";
 		break;
 	}
 }
@@ -233,7 +216,7 @@ void D_Renderer::SetSamplerFilter(SamplerFilter filter)
 void D_Renderer::ToggleFireMesh()
 {
 	m_IsFireMeshEnabled = !m_IsFireMeshEnabled;
-	std::cout << "Fire mesh -> " << (m_IsFireMeshEnabled ? "On" : "Off") << std::endl;
+	std::cout << "DirectX Renderer: Fire mesh -> " << (m_IsFireMeshEnabled ? "On" : "Off") << std::endl;
 }
 
 void D_Renderer::Render() const
@@ -320,7 +303,6 @@ HRESULT D_Renderer::InitializeDirectX()
 	{
 		DXGI_ADAPTER_DESC desc;
 		adapter->GetDesc(&desc);
-		std::wcout << L"Adapter " << i << L": " << desc.Description << L"\n";
 
 		if (desc.VendorId != 0x8086)
 		{
@@ -335,7 +317,6 @@ HRESULT D_Renderer::InitializeDirectX()
 
 	if (selectedAdapter == nullptr)
 	{
-		std::wcout << L"No suitable adapter found, defaulting to first adapter.\n";
 		result = m_pDXGIFactory->EnumAdapters(0, &selectedAdapter);
 		if (FAILED(result))
 		{
@@ -478,31 +459,9 @@ HRESULT D_Renderer::InitializeDirectX()
 void D_Renderer::SetCullMode(CullMode cullMode)
 {
 	m_CurrentCullMode = cullMode;
-	switch (m_CurrentCullMode)
-	{
-	case CullMode::BackFace:
-		std::cout << "DirectX Renderer: Cull mode set to Back-face\n";
-		break;
-	case CullMode::FrontFace:
-		std::cout << "DirectX Renderer: Cull mode set to Front-face\n";
-		break;
-	case CullMode::None:
-		std::cout << "DirectX Renderer: Cull mode set to None\n";
-		break;
-	}
-	// TODO: Apply cull mode to DirectX rasterizer state
 }
 
 void D_Renderer::SetUniformClearColor(bool useUniform)
 {
 	m_UseUniformClearColor = useUniform;
-	if (m_UseUniformClearColor)
-	{
-		std::cout << "DirectX Renderer: Clear color set to Uniform {0.1f, 0.1f, 0.1f}\n";
-	}
-	else
-	{
-		std::cout << "DirectX Renderer: Clear color set to Different colors\n";
-	}
-	// TODO: Apply clear color changes to DirectX rendering
 }
