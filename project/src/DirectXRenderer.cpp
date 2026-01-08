@@ -7,14 +7,14 @@
 #include <cassert>
 
 //Project includes
-#include "Renderer.h"
+#include "DirectXRenderer.h"
 #include "Visuals/Mesh.h"
 #include "Visuals/DirectXTexture.h"
 #include "Math/Utils.h"
 
 using namespace dae;
 
-Renderer::Renderer(SDL_Window* pWindow) :
+D_Renderer::D_Renderer(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
 	m_Camera(Vector3(0.f, 0.f, -50.f), 45.f)
 {
@@ -78,7 +78,7 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 	// Load fire FX texture
 	m_pFireDiffuseTexture = new D_Texture(m_pDevice, "resources/fireFX_diffuse.png");
-	
+
 	if (!m_pFireDiffuseTexture->GetShaderResourceView())
 	{
 		std::cerr << "Warning: Fire FX texture not found. Fire effect will not render.\n";
@@ -104,56 +104,56 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	}
 }
 
-Renderer::~Renderer()
+D_Renderer::~D_Renderer()
 {
 	// Release resources in REVERSE order of creation
 
 	// Meshes first (they reference shared effect)
-	if(m_pFireMesh)
+	if (m_pFireMesh)
 	{
 		delete m_pFireMesh;
 		m_pFireMesh = nullptr;
 	}
 
-	if(m_pMesh)
+	if (m_pMesh)
 	{
 		delete m_pMesh;
 		m_pMesh = nullptr;
 	}
 
 	// Then textures
-	if(m_pFireDiffuseTexture)
+	if (m_pFireDiffuseTexture)
 	{
 		delete m_pFireDiffuseTexture;
 		m_pFireDiffuseTexture = nullptr;
 	}
 
-	if(m_pGlossinessTexture)
+	if (m_pGlossinessTexture)
 	{
 		delete m_pGlossinessTexture;
 		m_pGlossinessTexture = nullptr;
 	}
 
-	if(m_pSpecularTexture)
+	if (m_pSpecularTexture)
 	{
 		delete m_pSpecularTexture;
 		m_pSpecularTexture = nullptr;
 	}
 
-	if(m_pNormalTexture)
+	if (m_pNormalTexture)
 	{
 		delete m_pNormalTexture;
 		m_pNormalTexture = nullptr;
 	}
 
-	if(m_pDiffuseTexture)
+	if (m_pDiffuseTexture)
 	{
 		delete m_pDiffuseTexture;
 		m_pDiffuseTexture = nullptr;
 	}
 
 	// Shared effect (used by meshes, so delete last)
-	if(m_pSharedEffect)
+	if (m_pSharedEffect)
 	{
 		delete m_pSharedEffect;
 		m_pSharedEffect = nullptr;
@@ -211,13 +211,13 @@ Renderer::~Renderer()
 	}
 }
 
-void Renderer::Update(const Timer* pTimer)
+void D_Renderer::Update(const Timer* pTimer)
 {
 	m_Camera.Update(const_cast<Timer*>(pTimer));
 	m_MeshRotationDegrees += pTimer->GetElapsed() * 45.f;
 }
 
-void Renderer::SetSamplerFilter(SamplerFilter filter)
+void D_Renderer::SetSamplerFilter(SamplerFilter filter)
 {
 	m_CurrentSamplerFilter = filter;
 
@@ -235,7 +235,7 @@ void Renderer::SetSamplerFilter(SamplerFilter filter)
 	}
 }
 
-void Renderer::Render() const
+void D_Renderer::Render() const
 {
 	if (!m_IsInitialized || !m_pMesh)
 		return;
@@ -255,8 +255,8 @@ void Renderer::Render() const
 
 	// IMPORTANT: Render vehicle FIRST (opaque)
 	// This writes to the depth buffer so transparent fire is rendered correctly behind it
-	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), 
-	                 m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
+	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(),
+		m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
 
 	// IMPORTANT: Render fire SECOND (transparent)
 	// Fire uses blend states and doesn't write to depth buffer
@@ -264,15 +264,15 @@ void Renderer::Render() const
 	if (m_pFireMesh && m_pFireDiffuseTexture && m_pFireDiffuseTexture->GetShaderResourceView())
 	{
 		Matrix fireWorldViewProjMatrix = worldMatrix * viewProjMatrix;
-		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, worldMatrix, m_Camera.GetPosition(), 
-		                     nullptr, nullptr, nullptr, m_CurrentSamplerFilter);
+		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, worldMatrix, m_Camera.GetPosition(),
+			nullptr, nullptr, nullptr, m_CurrentSamplerFilter);
 	}
 
 	// 3. Present backbuffer (swap)
 	m_pSwapChain->Present(0, 0);
 }
 
-HRESULT Renderer::InitializeDirectX()
+HRESULT D_Renderer::InitializeDirectX()
 {
 	//1. Create Device and Device Context
 	//==============================
@@ -286,7 +286,7 @@ HRESULT Renderer::InitializeDirectX()
 	//==============================
 	HRESULT result = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&m_pDXGIFactory));
 
-	if (FAILED(result)) 
+	if (FAILED(result))
 	{
 		return result;
 	}
@@ -296,7 +296,7 @@ HRESULT Renderer::InitializeDirectX()
 	IDXGIAdapter* adapter = nullptr;
 	IDXGIAdapter* selectedAdapter = nullptr;
 
-	for(UINT i = 0; m_pDXGIFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i)
+	for (UINT i = 0; m_pDXGIFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i)
 	{
 		DXGI_ADAPTER_DESC desc;
 		adapter->GetDesc(&desc);
@@ -327,7 +327,7 @@ HRESULT Renderer::InitializeDirectX()
 		0, createDeviceFlags, &featureLevel, 1,
 		D3D11_SDK_VERSION, &m_pDevice, nullptr, &m_pDeviceContext);
 
-	if(FAILED(result))
+	if (FAILED(result))
 	{
 		if (selectedAdapter)
 		{
@@ -406,14 +406,14 @@ HRESULT Renderer::InitializeDirectX()
 
 	result = m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &m_pDepthStencilBuffer);
 
-	if(FAILED(result))
+	if (FAILED(result))
 	{
 		return result;
 	}
 
 	result = m_pDevice->CreateDepthStencilView(m_pDepthStencilBuffer, &depthStencilViewDesc, &m_pDepthStencilView);
 
-	if(FAILED(result))
+	if (FAILED(result))
 	{
 		return result;
 	}

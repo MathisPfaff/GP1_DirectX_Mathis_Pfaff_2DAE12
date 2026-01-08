@@ -3,7 +3,7 @@
 
 
 Mesh::Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices,
-           const std::vector<uint32_t>& indices, Texture* pTexture,
+           const std::vector<uint32_t>& indices, D_Texture* pTexture,
            Effect* pSharedEffect, bool isFireFX) :
     m_pDevice{ pDevice },
     m_pEffect{ pSharedEffect },
@@ -163,7 +163,7 @@ void Mesh::SetupTechnique(ID3D11DeviceContext* pDeviceContext, SamplerFilter fil
 	}
 }
 
-void Mesh::BindTextures(const Texture* pNormalMap, const Texture* pSpecularMap, const Texture* pGlossinessMap) const
+void Mesh::BindTextures(const D_Texture* pNormalMap, const D_Texture* pSpecularMap, const D_Texture* pGlossinessMap) const
 {
 	// Bind diffuse texture (always required)
 	if (m_pTexture)
@@ -193,7 +193,7 @@ void Mesh::BindTextures(const Texture* pNormalMap, const Texture* pSpecularMap, 
 
 void Mesh::Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, 
                   const dae::Matrix& worldMatrix, const dae::Vector3& cameraPos, 
-                  Texture* pNormalMap, Texture* pSpecularMap, Texture* pGlossinessMap, 
+				  D_Texture* pNormalMap, D_Texture* pSpecularMap, D_Texture* pGlossinessMap,
                   SamplerFilter filter) const
 {
 	assert(pDeviceContext != nullptr && "Device context cannot be null");

@@ -1,7 +1,7 @@
-#include "Texture.h"
+#include "DirectXTexture.h"
 #include <SDL_image.h>
 
-Texture::Texture(ID3D11Device* pDevice, const std::string& filePath)
+D_Texture::D_Texture(ID3D11Device* pDevice, const std::string& filePath)
 	: m_pShaderResourceView(nullptr), m_pResource(nullptr)
 {
 	if (!LoadTextureFromFile(pDevice, filePath))
@@ -10,7 +10,7 @@ Texture::Texture(ID3D11Device* pDevice, const std::string& filePath)
 	}
 }
 
-Texture::~Texture()
+D_Texture::~D_Texture()
 {
 	if (m_pShaderResourceView)
 	{
@@ -25,12 +25,12 @@ Texture::~Texture()
 	}
 }
 
-ID3D11ShaderResourceView* Texture::GetShaderResourceView() const
+ID3D11ShaderResourceView* D_Texture::GetShaderResourceView() const
 {
 	return m_pShaderResourceView;
 }
 
-bool Texture::LoadTextureFromFile(ID3D11Device* pDevice, const std::string& filePath)
+bool D_Texture::LoadTextureFromFile(ID3D11Device* pDevice, const std::string& filePath)
 {
 	SDL_Surface* pSurface = IMG_Load(filePath.c_str());
 	if (!pSurface)

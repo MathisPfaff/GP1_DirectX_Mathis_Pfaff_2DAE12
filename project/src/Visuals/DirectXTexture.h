@@ -11,16 +11,16 @@
 // SDL Headers
 #include "SDL_surface.h"
 
-class Texture
+class D_Texture
 {
 public:
-	Texture(ID3D11Device* pDevice, const std::string& filePath);
-	~Texture();
+	D_Texture(ID3D11Device* pDevice, const std::string& filePath);
+	~D_Texture();
 
-	Texture(const Texture&) = delete;
-	Texture(Texture&&) noexcept = delete;
-	Texture& operator=(const Texture&) = delete;
-	Texture& operator=(Texture&&) noexcept = delete;
+	D_Texture(const D_Texture&) = delete;
+	D_Texture(D_Texture&&) noexcept = delete;
+	D_Texture& operator=(const D_Texture&) = delete;
+	D_Texture& operator=(D_Texture&&) noexcept = delete;
 
 	ID3D11ShaderResourceView* GetShaderResourceView() const;
 

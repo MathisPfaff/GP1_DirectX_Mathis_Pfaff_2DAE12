@@ -22,16 +22,16 @@ class D_Texture;
 
 namespace dae
 {
-	class Renderer final
+	class D_Renderer final
 	{
 	public:
-		Renderer(SDL_Window* pWindow);
-		~Renderer();
+		D_Renderer(SDL_Window* pWindow);
+		~D_Renderer();
 
-		Renderer(const Renderer&) = delete;
-		Renderer(Renderer&&) noexcept = delete;
-		Renderer& operator=(const Renderer&) = delete;
-		Renderer& operator=(Renderer&&) noexcept = delete;
+		D_Renderer(const D_Renderer&) = delete;
+		D_Renderer(D_Renderer&&) noexcept = delete;
+		D_Renderer& operator=(const D_Renderer&) = delete;
+		D_Renderer& operator=(D_Renderer&&) noexcept = delete;
 
 		void Update(const Timer* pTimer);
 		void Render() const;

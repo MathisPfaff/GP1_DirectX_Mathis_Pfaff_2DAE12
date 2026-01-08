@@ -12,8 +12,12 @@ set(SOURCES
     "src/Visuals/FireEffect.cpp"
     "src/Visuals/Mesh.cpp"
     "src/Camera.h"
-    "src/Visuals/Texture.cpp"
-    "src/Math/BRDFs.h")
+    "src/Visuals/DirectXTexture.cpp"
+    "src/Math/BRDFs.h" 
+    "src/DirectXRenderer.cpp" 
+    "src/Visuals/SoftwareTexture.cpp" 
+    "src/SoftwareRenderer.cpp" 
+    "src/DataTypes.h")
 
 # Create the executable
 add_executable(${PROJECT_NAME} ${SOURCES})

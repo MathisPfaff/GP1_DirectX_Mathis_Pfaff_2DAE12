@@ -10,7 +10,7 @@
 #include "Math/Vector3.h"
 #include "Effect.h"
 #include "Math/Matrix.h"
-#include "Texture.h"
+#include "DirectXTexture.h"
 
 namespace dae
 {
@@ -28,7 +28,7 @@ class Mesh final
 {
 public:
 	Mesh(ID3D11Device* pDevice, const std::vector<dae::Vertex_PosCol>& vertices, 
-		 const std::vector<uint32_t>& indices, Texture* pTexture, 
+		 const std::vector<uint32_t>& indices, D_Texture* pTexture,
 		 Effect* pSharedEffect, bool isFireFX = false);
 	~Mesh();
 
@@ -39,7 +39,7 @@ public:
 
 	void Render(ID3D11DeviceContext* pDeviceContext, const dae::Matrix& worldViewProjMatrix, 
 	           const dae::Matrix& worldMatrix, const dae::Vector3& cameraPos, 
-	           Texture* pNormalMap, Texture* pSpecularMap, Texture* pGlossinessMap, 
+			   D_Texture* pNormalMap, D_Texture* pSpecularMap, D_Texture* pGlossinessMap,
 	           SamplerFilter filter = SamplerFilter::Point) const;
 
 	bool IsFireFX() const { return m_IsFireFX; }
@@ -58,7 +58,7 @@ private:
 
 	// References (not owned)
 	Effect* m_pEffect;
-	Texture* m_pTexture;
+	D_Texture* m_pTexture;
 
 	// Flags
 	bool m_IsFireFX = false;
@@ -66,5 +66,5 @@ private:
 
 	// Helper functions
 	void SetupTechnique(ID3D11DeviceContext* pDeviceContext, SamplerFilter filter) const;
-	void BindTextures(const Texture* pNormalMap, const Texture* pSpecularMap, const Texture* pGlossinessMap) const;
+	void BindTextures(const D_Texture* pNormalMap, const D_Texture* pSpecularMap, const D_Texture* pGlossinessMap) const;
 };
