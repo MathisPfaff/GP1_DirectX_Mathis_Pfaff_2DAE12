@@ -47,12 +47,23 @@ namespace dae
 		void SetSamplerFilter(SamplerFilter filter);
 		void SwitchRenderer();
 
+		// Getters for shared camera and rotation
+		const Camera& GetCamera() const { return m_Camera; }
+		float GetMeshRotationRadians() const { return m_MeshRotationRadians; }
+
 	private:
 		SDL_Window* m_pWindow{};
 		RendererType m_CurrentRenderer{ RendererType::DirectX };
 
 		int m_Width{};
 		int m_Height{};
+
+		// Shared camera
+		Camera m_Camera{};
+
+		// Shared mesh rotation state
+		float m_MeshRotationRadians{ 0.0f };
+		static constexpr float MESH_ROTATION_SPEED{ 45.0f }; // degrees per second
 
 		// Renderer instances
 		std::unique_ptr<S_Renderer> m_pSoftwareRenderer{};

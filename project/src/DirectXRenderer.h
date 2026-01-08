@@ -26,7 +26,7 @@ namespace dae
 	class D_Renderer final
 	{
 	public:
-		D_Renderer(SDL_Window* pWindow);
+		D_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshRotation);
 		~D_Renderer();
 
 		D_Renderer(const D_Renderer&) = delete;
@@ -46,10 +46,9 @@ namespace dae
 
 		bool m_IsInitialized{ false };
 
-		Camera m_Camera{};
+		Camera* m_pCamera{};
+		float* m_pMeshRotation{};
 		mutable SamplerFilter m_CurrentSamplerFilter{ SamplerFilter::Point };
-
-		float m_MeshRotationDegrees{};
 
 		//DIRECTX
 		HRESULT InitializeDirectX();

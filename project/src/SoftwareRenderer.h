@@ -12,6 +12,7 @@ namespace dae
 	class S_Texture;
 	class Timer;
 	class Scene;
+	class Renderer;
 
 	class S_Renderer final
 	{
@@ -25,7 +26,7 @@ namespace dae
 			SPECULAR
 		};
 
-		S_Renderer(SDL_Window* pWindow);
+		S_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshRotation);
 		~S_Renderer();
 
 		S_Renderer(const S_Renderer&) = delete;
@@ -33,7 +34,7 @@ namespace dae
 		S_Renderer& operator=(const S_Renderer&) = delete;
 		S_Renderer& operator=(S_Renderer&&) noexcept = delete;
 
-		void Update(Timer* pTimer);
+		void Update(const Timer* pTimer);
 		void Render();
 		bool SaveBufferToImage() const;
 		void SwitchDepthBuffer();
@@ -66,7 +67,8 @@ namespace dae
 		int m_AllPixels{};
 		std::vector<int> m_PixelIndices;
 
-		Camera m_Camera{};
+		Camera* m_pCamera{}; // Pointer to shared camera
+		float* m_pMeshRotation{}; // Pointer to shared mesh rotation in radians
 
 		int m_Width{};
 		int m_Height{};
@@ -75,7 +77,6 @@ namespace dae
 		const ColorRGB m_Ambient;
 
 		bool m_RotateMesh{ true };
-		float m_RotateTimer;
 
 
 		Uint32 ColorToUint32(const ColorRGB& color);

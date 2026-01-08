@@ -12,15 +12,19 @@
 
 using namespace dae;
 
-S_Renderer::S_Renderer(SDL_Window* pWindow) :
+S_Renderer::S_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshRotation) :
 	m_pWindow(pWindow),
+	m_pCamera(pSharedCamera),
+	m_pMeshRotation(pMeshRotation),
 	m_ShadingMode{ ShadingMode::COMBINED },
 	m_LightDirection{ 0.577f, -0.577f, 0.577f },
 	m_LightIntensity{ 7.f },
-	m_RotateTimer{},
 	m_Shininess{ 25.f },
 	m_Ambient{ 0.03f, 0.03f, 0.03f }
 {
+	assert(pSharedCamera != nullptr && "Shared camera cannot be null");
+	assert(pMeshRotation != nullptr && "Shared mesh rotation cannot be null");
+
 	//Initialize
 	m_Meshes.reserve(10);
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
@@ -43,11 +47,6 @@ S_Renderer::S_Renderer(SDL_Window* pWindow) :
 	{
 		m_pDepthBufferPixels[idx] = FLT_MAX;
 	}
-
-	//Initialize Camera
-	m_Camera.Initialize(45.f, Vector3{ 0.f, 5.f, -30.f }, float(m_Width) / float(m_Height));
-	m_Camera.CalculateProjectionMatrix();
-	m_Camera.CalculateViewMatrix();
 
 	//Load Textures
 	m_pDiffuseMap = std::unique_ptr<S_Texture>(S_Texture::LoadFromFile("Resources/vehicle_diffuse.png"));
@@ -93,14 +92,10 @@ S_Renderer::~S_Renderer()
 	m_pBackBufferPixels = nullptr;
 }
 
-void S_Renderer::Update(Timer* pTimer)
+void S_Renderer::Update(const Timer* pTimer)
 {
-	m_Camera.Update(pTimer);
-	if (m_RotateMesh)
-	{
-		m_RotateTimer += pTimer->GetElapsed();
-		m_Meshes[0].worldMatrix = Matrix::CreateRotationY(m_RotateTimer) * Matrix::CreateTranslation(0.f, 0.f, 50.f);
-	}
+	// Apply the shared rotation to the mesh
+	m_Meshes[0].worldMatrix = Matrix::CreateRotationY(*m_pMeshRotation) * Matrix::CreateTranslation(0.f, 0.f, 50.f);
 }
 
 void S_Renderer::SwitchDepthBuffer()
@@ -302,7 +297,7 @@ Uint32 S_Renderer::ColorToUint32(const ColorRGB& color)
 
 void S_Renderer::VertexTransformationFunction(const std::vector<Vertex>& vertices, std::vector<Vertex_Out>& verticesOut, const Matrix& worldMatrix) const
 {
-	const Matrix worldViewProjectionMatrix{ worldMatrix * m_Camera.viewMatrix * m_Camera.projMatrix };
+	const Matrix worldViewProjectionMatrix{ worldMatrix * m_pCamera->viewMatrix * m_pCamera->projMatrix };
 
 	int idx{ 0 };
 
@@ -317,7 +312,7 @@ void S_Renderer::VertexTransformationFunction(const std::vector<Vertex>& vertice
 
 		vertexOut.normal = worldMatrix.TransformVector(vertices[idx].normal).Normalized();
 		vertexOut.tangent = worldMatrix.TransformVector(vertices[idx].tangent).Normalized();
-		vertexOut.viewDirection = (worldMatrix.TransformPoint(vertices[idx].position) - m_Camera.origin).Normalized();
+		vertexOut.viewDirection = (worldMatrix.TransformPoint(vertices[idx].position) - m_pCamera->origin).Normalized();
 		vertexOut.inFrustum = InsideFrustum(vertexOut);
 
 		++idx;
@@ -408,7 +403,3 @@ float S_Renderer::Remap(float v, float min, float max) const
 	float result{ (v - min) / (max - min) };
 	return Clamp(result, 0.0f, 1.0f);
 }
-
-
-
-

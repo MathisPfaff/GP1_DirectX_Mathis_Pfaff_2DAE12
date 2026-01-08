@@ -14,9 +14,10 @@
 
 using namespace dae;
 
-D_Renderer::D_Renderer(SDL_Window* pWindow) :
+D_Renderer::D_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshRotation) :
 	m_pWindow(pWindow),
-	m_Camera(Vector3(0.f, 0.f, -50.f), 45.f)
+	m_pCamera(pSharedCamera),
+	m_pMeshRotation(pMeshRotation)
 {
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
@@ -33,11 +34,6 @@ D_Renderer::D_Renderer(SDL_Window* pWindow) :
 		std::cout << "DirectX initialization failed!\n";
 		return;
 	}
-
-	// Initialize camera
-	m_Camera.Initialize(45.f, Vector3(0.f, 0.f, -50.f), float(m_Width) / float(m_Height));
-	m_Camera.CalculateViewMatrix();
-	m_Camera.CalculateProjectionMatrix();
 
 	// Load vehicle textures
 	m_pDiffuseTexture = new D_Texture(m_pDevice, "resources/vehicle_diffuse.png");
@@ -213,8 +209,7 @@ D_Renderer::~D_Renderer()
 
 void D_Renderer::Update(const Timer* pTimer)
 {
-	m_Camera.Update(const_cast<Timer*>(pTimer));
-	m_MeshRotationDegrees += pTimer->GetElapsed() * 45.f;
+
 }
 
 void D_Renderer::SetSamplerFilter(SamplerFilter filter)
@@ -247,15 +242,15 @@ void D_Renderer::Render() const
 
 	// 2. Set Pipeline + Invoke Draw Calls
 	// Pre-compute matrices to avoid redundant calculations
-	Matrix worldMatrix = Matrix::CreateRotationY(m_MeshRotationDegrees * 3.14159f / 180.f);
-	Matrix viewMatrix = m_Camera.GetViewMatrix();
-	Matrix projMatrix = m_Camera.GetProjectionMatrix();
+	Matrix worldMatrix = Matrix::CreateRotationY(*m_pMeshRotation) * Matrix::CreateTranslation(0.f, 0.f, 50.f);
+	Matrix viewMatrix = m_pCamera->GetViewMatrix();
+	Matrix projMatrix = m_pCamera->GetProjectionMatrix();
 	Matrix viewProjMatrix = viewMatrix * projMatrix;
 	Matrix worldViewProjMatrix = worldMatrix * viewProjMatrix;
 
 	// IMPORTANT: Render vehicle FIRST (opaque)
 	// This writes to the depth buffer so transparent fire is rendered correctly behind it
-	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_Camera.GetPosition(),
+	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_pCamera->GetPosition(),
 		m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
 
 	// IMPORTANT: Render fire SECOND (transparent)
@@ -264,7 +259,7 @@ void D_Renderer::Render() const
 	if (m_pFireMesh && m_pFireDiffuseTexture && m_pFireDiffuseTexture->GetShaderResourceView())
 	{
 		Matrix fireWorldViewProjMatrix = worldMatrix * viewProjMatrix;
-		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, worldMatrix, m_Camera.GetPosition(),
+		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, worldMatrix, m_pCamera->GetPosition(),
 			nullptr, nullptr, nullptr, m_CurrentSamplerFilter);
 	}
 

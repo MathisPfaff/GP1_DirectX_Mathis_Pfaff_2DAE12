@@ -16,15 +16,21 @@ using namespace dae;
 
 Renderer::Renderer(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
-	m_CurrentRenderer(RendererType::DirectX)
+	m_CurrentRenderer(RendererType::DirectX),
+	m_MeshRotationRadians(0.0f)
 {
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
 
+	// Initialize shared camera
+	m_Camera.Initialize(45.f, Vector3(0.f, 0.f, 0.f), float(m_Width) / float(m_Height));
+	m_Camera.CalculateViewMatrix();
+	m_Camera.CalculateProjectionMatrix();
+
 	// Initialize both renderers
 	try
 	{
-		m_pDirectXRenderer = std::make_unique<D_Renderer>(pWindow);
+		m_pDirectXRenderer = std::make_unique<D_Renderer>(pWindow, &m_Camera, &m_MeshRotationRadians);
 		std::cout << "DirectX renderer initialized successfully\n";
 	}
 	catch (const std::exception& e)
@@ -35,7 +41,7 @@ Renderer::Renderer(SDL_Window* pWindow) :
 
 	try
 	{
-		m_pSoftwareRenderer = std::make_unique<S_Renderer>(pWindow);
+		m_pSoftwareRenderer = std::make_unique<S_Renderer>(pWindow, &m_Camera, &m_MeshRotationRadians);
 		std::cout << "Software renderer initialized successfully\n";
 	}
 	catch (const std::exception& e)
@@ -60,14 +66,20 @@ Renderer::~Renderer()
 
 void Renderer::Update(const Timer* pTimer)
 {
+	// Update shared camera
+	m_Camera.Update(const_cast<Timer*>(pTimer));
+
+	// Update shared mesh rotation (45 degrees per second)
+	m_MeshRotationRadians += MESH_ROTATION_SPEED * pTimer->GetElapsed() * 3.14159f / 180.f;
+
+	// Update the active renderer
 	if (m_CurrentRenderer == RendererType::DirectX && m_pDirectXRenderer)
 	{
 		m_pDirectXRenderer->Update(pTimer);
 	}
 	else if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
 	{
-		// Cast away const for Software renderer since its Update signature expects non-const
-		m_pSoftwareRenderer->Update(const_cast<Timer*>(pTimer));
+		m_pSoftwareRenderer->Update(pTimer);
 	}
 }
 
