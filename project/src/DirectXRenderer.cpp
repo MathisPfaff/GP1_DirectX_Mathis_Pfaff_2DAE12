@@ -62,12 +62,12 @@ D_Renderer::D_Renderer(SDL_Window* pWindow) :
 	assert(m_pSharedEffect != nullptr && "Failed to create shared effect");
 
 	// Load vehicle mesh
-	std::vector<Vertex_PosCol> vertices{};
+	std::vector<Vertex> vertices{};
 	std::vector<uint32_t> indices{};
 
 	if (dae::Utils::ParseOBJ("resources/vehicle.obj", vertices, indices, true))
 	{
-		m_pMesh = new Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture, m_pSharedEffect, false);
+		m_pMesh = new D_Mesh(m_pDevice, vertices, indices, m_pDiffuseTexture, m_pSharedEffect, false);
 		std::cout << "Vehicle mesh loaded successfully\n";
 	}
 	else
@@ -94,7 +94,7 @@ D_Renderer::D_Renderer(SDL_Window* pWindow) :
 
 	if (dae::Utils::ParseOBJ("resources/fireFX.obj", vertices, indices, true))
 	{
-		m_pFireMesh = new Mesh(m_pDevice, vertices, indices, m_pFireDiffuseTexture, m_pSharedEffect, true);
+		m_pFireMesh = new D_Mesh(m_pDevice, vertices, indices, m_pFireDiffuseTexture, m_pSharedEffect, true);
 		std::cout << "Fire FX mesh loaded successfully\n";
 	}
 	else

@@ -22,6 +22,15 @@ class D_Texture;
 
 namespace dae
 {
+	class S_Renderer;
+	class D_Renderer;
+
+	enum class RendererType
+	{
+		Software,
+		DirectX
+	};
+
 	class Renderer final
 	{
 	public:
@@ -36,43 +45,17 @@ namespace dae
 		void Update(const Timer* pTimer);
 		void Render() const;
 		void SetSamplerFilter(SamplerFilter filter);
+		void SwitchRenderer();
 
 	private:
 		SDL_Window* m_pWindow{};
+		RendererType m_CurrentRenderer{ RendererType::DirectX };
 
 		int m_Width{};
 		int m_Height{};
 
-		bool m_IsInitialized{ false };
-
-		Camera m_Camera{};
-		mutable SamplerFilter m_CurrentSamplerFilter{ SamplerFilter::Point };
-
-		float m_MeshRotationDegrees{};
-
-		//DIRECTX
-		HRESULT InitializeDirectX();
-		IDXGIFactory1* m_pDXGIFactory{};
-		ID3D11Device* m_pDevice;
-		ID3D11DeviceContext* m_pDeviceContext;
-		IDXGISwapChain* m_pSwapChain;
-		ID3D11Texture2D* m_pDepthStencilBuffer;
-		ID3D11DepthStencilView* m_pDepthStencilView;
-		ID3D11Resource* m_pRenderTargetBuffer;
-		ID3D11RenderTargetView* m_pRenderTargetView;
-
-		// Vehicle mesh and textures
-		Mesh* m_pMesh{};
-		D_Texture* m_pDiffuseTexture{};
-		D_Texture* m_pNormalTexture{};
-		D_Texture* m_pSpecularTexture{};
-		D_Texture* m_pGlossinessTexture{};
-
-		// Fire FX mesh and texture
-		Mesh* m_pFireMesh{};
-		D_Texture* m_pFireDiffuseTexture{};
-
-		// Shared effect
-		Effect* m_pSharedEffect{};
+		// Renderer instances
+		std::unique_ptr<S_Renderer> m_pSoftwareRenderer{};
+		std::unique_ptr<D_Renderer> m_pDirectXRenderer{};
 	};
 }

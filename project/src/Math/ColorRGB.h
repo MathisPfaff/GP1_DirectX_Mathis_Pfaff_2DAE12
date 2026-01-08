@@ -1,4 +1,5 @@
 #pragma once
+#define NOMINMAX
 #include "MathHelpers.h"
 
 namespace dae
@@ -11,7 +12,7 @@ namespace dae
 
 		void MaxToOne()
 		{
-			const float maxValue = std::max(r, std::max(g, b));
+			const float maxValue = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
 			if (maxValue > 1.f)
 				*this /= maxValue;
 		}
@@ -89,7 +90,7 @@ namespace dae
 
 		ColorRGB operator*(float s) const
 		{
-			return { r * s, g * s,b * s };
+			return { r * s, g * s, b * s };
 		}
 
 		const ColorRGB& operator/=(float s)
@@ -116,14 +117,14 @@ namespace dae
 
 	namespace colors
 	{
-		static ColorRGB Red{ 1,0,0 };
-		static ColorRGB Blue{ 0,0,1 };
-		static ColorRGB Green{ 0,1,0 };
-		static ColorRGB Yellow{ 1,1,0 };
-		static ColorRGB Cyan{ 0,1,1 };
-		static ColorRGB Magenta{ 1,0,1 };
-		static ColorRGB White{ 1,1,1 };
-		static ColorRGB Black{ 0,0,0 };
-		static ColorRGB Gray{ 0.5f,0.5f,0.5f };
+		static ColorRGB Red{ 1, 0, 0 };
+		static ColorRGB Blue{ 0, 0, 1 };
+		static ColorRGB Green{ 0, 1, 0 };
+		static ColorRGB Yellow{ 1, 1, 0 };
+		static ColorRGB Cyan{ 0, 1, 1 };
+		static ColorRGB Magenta{ 1, 0, 1 };
+		static ColorRGB White{ 1, 1, 1 };
+		static ColorRGB Black{ 0, 0, 0 };
+		static ColorRGB Gray{ 0.5f, 0.5f, 0.5f };
 	}
 }

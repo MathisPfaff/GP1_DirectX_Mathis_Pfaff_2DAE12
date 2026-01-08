@@ -17,11 +17,12 @@
 #include "Camera.h"
 #include "Visuals/Effect.h"
 
-class Mesh;
 class D_Texture;
 
 namespace dae
 {
+	class D_Mesh;
+
 	class D_Renderer final
 	{
 	public:
@@ -62,14 +63,14 @@ namespace dae
 		ID3D11RenderTargetView* m_pRenderTargetView;
 
 		// Vehicle mesh and textures
-		Mesh* m_pMesh{};
+		D_Mesh* m_pMesh{};
 		D_Texture* m_pDiffuseTexture{};
 		D_Texture* m_pNormalTexture{};
 		D_Texture* m_pSpecularTexture{};
 		D_Texture* m_pGlossinessTexture{};
 
 		// Fire FX mesh and texture
-		Mesh* m_pFireMesh{};
+		D_Mesh* m_pFireMesh{};
 		D_Texture* m_pFireDiffuseTexture{};
 
 		// Shared effect

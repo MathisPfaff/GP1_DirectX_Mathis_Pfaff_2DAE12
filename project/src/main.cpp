@@ -88,6 +88,10 @@ int main(int argc, char* args[])
 					}
 					pRenderer->SetSamplerFilter(currentFilter);
 				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_R)
+				{
+					pRenderer->SwitchRenderer();
+				}
 				break;
 			default: ;
 			}
