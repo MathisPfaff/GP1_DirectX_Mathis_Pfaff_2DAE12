@@ -6,10 +6,10 @@
 #include <d3dcompiler.h>
 #include <d3dx11effect.h>
 #include <DirectXMath.h>
-#include "Vector2.h"
-#include "Vector3.h"
+#include "Math/Vector2.h"
+#include "Math/Vector3.h"
 #include "Effect.h"
-#include "Matrix.h"
+#include "Math/Matrix.h"
 #include "Texture.h"
 
 namespace dae

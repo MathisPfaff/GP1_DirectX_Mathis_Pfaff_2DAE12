@@ -3,7 +3,7 @@
 #include <SDL_keyboard.h>
 #include <SDL_mouse.h>
 
-#include "Math.h"
+#include "Math/Math.h"
 #include "Timer.h"
 
 namespace dae

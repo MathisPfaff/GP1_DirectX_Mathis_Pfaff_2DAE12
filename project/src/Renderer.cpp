@@ -8,9 +8,9 @@
 
 //Project includes
 #include "Renderer.h"
-#include "Mesh.h"
-#include "Texture.h"
-#include "Utils.h"
+#include "Visuals/Mesh.h"
+#include "Visuals/Texture.h"
+#include "Math/Utils.h"
 
 using namespace dae;
 

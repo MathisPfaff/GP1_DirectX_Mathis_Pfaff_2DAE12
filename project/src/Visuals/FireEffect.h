@@ -5,7 +5,7 @@
 #include <d3dcompiler.h>
 #include <d3dx11effect.h>
 #include "Effect.h"
-#include "Matrix.h"
+#include "Math/Matrix.h"
 
 class FireEffect final : public Effect
 {

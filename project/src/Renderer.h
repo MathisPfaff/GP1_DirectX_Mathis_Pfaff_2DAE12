@@ -15,7 +15,7 @@
 // Framework Headers
 #include "Timer.h"
 #include "Camera.h"
-#include "Effect.h"
+#include "Visuals/Effect.h"
 
 class Mesh;
 class Texture;

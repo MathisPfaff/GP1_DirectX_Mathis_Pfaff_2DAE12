@@ -2,21 +2,24 @@
 set(SOURCES 
     "src/main.cpp"
     "src/LeakDetector.cpp"
-    "src/Matrix.cpp"
+    "src/Math/Matrix.cpp"
     "src/Renderer.cpp"
     "src/Timer.cpp"
-	"src/Vector2.cpp"
-    "src/Vector3.cpp"
-    "src/Vector4.cpp"
-    "src/Effect.cpp"
-    "src/FireEffect.cpp"
-    "src/Mesh.cpp"
+	"src/Math/Vector2.cpp"
+    "src/Math/Vector3.cpp"
+    "src/Math/Vector4.cpp"
+    "src/Visuals/Effect.cpp"
+    "src/Visuals/FireEffect.cpp"
+    "src/Visuals/Mesh.cpp"
     "src/Camera.h"
-    "src/Texture.cpp"
-    "src/BRDFs.h")
+    "src/Visuals/Texture.cpp"
+    "src/Math/BRDFs.h")
 
 # Create the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+# Add include directories for the project
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # DirectX11
 option(DIRECTX_11_ENABLED "Enable DirectX 11 Support" ON)

@@ -6,7 +6,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <d3dx11effect.h>
-#include "Matrix.h"
+#include "Math/Matrix.h"
 
 enum class SamplerFilter
 {
