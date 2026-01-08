@@ -76,11 +76,17 @@ namespace dae
 		{
 			const float deltaTime = pTimer->GetElapsed();
 
-			const float moveSpeed = 20.0f * deltaTime;
+			const float baseMovementSpeed = 20.0f * deltaTime;
 			const float rotateSpeed = dae::TO_RADIANS * 50.0f * deltaTime;
 
 			// Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
+
+			// Check if Shift key is pressed (either left or right Shift)
+			const bool isShiftPressed = pKeyboardState[SDL_SCANCODE_LSHIFT] || pKeyboardState[SDL_SCANCODE_RSHIFT];
+			
+			// Apply 2x speed multiplier if Shift is pressed
+			const float moveSpeed = baseMovementSpeed * (isShiftPressed ? 2.0f : 1.0f);
 
 			if (pKeyboardState[SDL_SCANCODE_W] || pKeyboardState[SDL_SCANCODE_UP])
 			{

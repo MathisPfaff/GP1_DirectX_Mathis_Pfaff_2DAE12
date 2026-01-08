@@ -4,6 +4,7 @@
 #define PI 3.14159265359f
 #define LIGHT_INTENSITY 7.0f
 #define SHININESS 25.0f
+#define AMBIENT_COLOR float3(0.025f, 0.025f, 0.025f)
 static const float3 gLightDirection = { -0.577f, 0.577f, -0.577f };
 
 //---------------------------------------------------------------
@@ -223,8 +224,8 @@ float4 PSShading(VS_OUTPUT input, SamplerState samplerState) : SV_TARGET
     // Calculate specular
     float3 specular = PhongSpecular(specularStrength, glossiness * SHININESS, l, v, normal);
     
-    // Combine diffuse and specular
-    float3 finalColor = diffuse + specular;
+    // Combine diffuse and specular WITH AMBIENT
+    float3 finalColor = diffuse + specular + AMBIENT_COLOR;
     
     // Clamp color to valid range [0, 1]
     finalColor = saturate(finalColor);

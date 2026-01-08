@@ -20,7 +20,7 @@ S_Renderer::S_Renderer(SDL_Window* pWindow, Camera* pSharedCamera, float* pMeshR
 	m_LightDirection{ 0.577f, -0.577f, 0.577f },
 	m_LightIntensity{ 7.f },
 	m_Shininess{ 25.f },
-	m_Ambient{ 0.03f, 0.03f, 0.03f }
+	m_Ambient{ 0.025f, 0.025f, 0.025f }
 {
 	assert(pSharedCamera != nullptr && "Shared camera cannot be null");
 	assert(pMeshRotation != nullptr && "Shared mesh rotation cannot be null");
