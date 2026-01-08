@@ -46,6 +46,14 @@ namespace dae
 		void Render() const;
 		void SetSamplerFilter(SamplerFilter filter);
 		void SwitchRenderer();
+		void Changerotation();
+		void ToggleFireMesh();
+
+		// Software renderer controls
+		void CycleShadingMode();
+		void ToggleNormalMap();
+		void ToggleDepthBuffer();
+		void ToggleBoundingBox();
 
 		// Getters for shared camera and rotation
 		const Camera& GetCamera() const { return m_Camera; }
@@ -58,6 +66,8 @@ namespace dae
 		int m_Width{};
 		int m_Height{};
 
+		bool m_RotateMesh{ true };
+
 		// Shared camera
 		Camera m_Camera{};
 
@@ -68,5 +78,6 @@ namespace dae
 		// Renderer instances
 		std::unique_ptr<S_Renderer> m_pSoftwareRenderer{};
 		std::unique_ptr<D_Renderer> m_pDirectXRenderer{};
+
 	};
 }

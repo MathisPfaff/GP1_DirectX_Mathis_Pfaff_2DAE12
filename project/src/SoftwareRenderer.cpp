@@ -142,6 +142,13 @@ void S_Renderer::CycleShadingMode()
 	}
 }
 
+void S_Renderer::ToggleBoundingBox()
+{
+	m_ShowBoundingBox = !m_ShowBoundingBox;
+
+	std::cout << "Bounding box -> " << ((m_ShowBoundingBox) ? "On" : "Off") << std::endl;
+}
+
 void S_Renderer::Render()
 {
 	SDL_LockSurface(m_pBackBuffer);
@@ -280,6 +287,11 @@ void S_Renderer::Render()
 				}
 			}
 		}
+
+		if (m_ShowBoundingBox)
+		{
+			DrawBoundingBox(mesh);
+		}
 	}
 
 	SDL_UnlockSurface(m_pBackBuffer);
@@ -402,4 +414,71 @@ float S_Renderer::Remap(float v, float min, float max) const
 {
 	float result{ (v - min) / (max - min) };
 	return Clamp(result, 0.0f, 1.0f);
+}
+
+void S_Renderer::DrawBoundingBox(const Mesh& mesh)
+{
+	// Find the bounding box in screen space
+	float minX = FLT_MAX, minY = FLT_MAX;
+	float maxX = FLT_MIN, maxY = FLT_MIN;
+
+	for (const auto& vertex : mesh.vertices_out)
+	{
+		if (vertex.inFrustum)
+		{
+			minX = std::min(minX, vertex.position.x);
+			minY = std::min(minY, vertex.position.y);
+			maxX = std::max(maxX, vertex.position.x);
+			maxY = std::max(maxY, vertex.position.y);
+		}
+	}
+
+	if (minX == FLT_MAX)
+		return; // No vertices in frustum
+
+	// Clamp to screen boundaries
+	minX = std::clamp(minX, 0.0f, static_cast<float>(m_Width));
+	minY = std::clamp(minY, 0.0f, static_cast<float>(m_Height));
+	maxX = std::clamp(maxX, 0.0f, static_cast<float>(m_Width));
+	maxY = std::clamp(maxY, 0.0f, static_cast<float>(m_Height));
+
+	const Uint32 boundingBoxColor = ColorToUint32(colors::Yellow);
+
+	// Draw bounding box lines
+	int iMinX = static_cast<int>(minX);
+	int iMinY = static_cast<int>(minY);
+	int iMaxX = static_cast<int>(maxX);
+	int iMaxY = static_cast<int>(maxY);
+
+	// Top line
+	for (int x = iMinX; x <= iMaxX; ++x)
+	{
+		int bufferIdx = x + (iMinY * m_Width);
+		if (bufferIdx >= 0 && bufferIdx < m_AllPixels)
+			m_pBackBufferPixels[bufferIdx] = boundingBoxColor;
+	}
+
+	// Bottom line
+	for (int x = iMinX; x <= iMaxX; ++x)
+	{
+		int bufferIdx = x + (iMaxY * m_Width);
+		if (bufferIdx >= 0 && bufferIdx < m_AllPixels)
+			m_pBackBufferPixels[bufferIdx] = boundingBoxColor;
+	}
+
+	// Left line
+	for (int y = iMinY; y <= iMaxY; ++y)
+	{
+		int bufferIdx = iMinX + (y * m_Width);
+		if (bufferIdx >= 0 && bufferIdx < m_AllPixels)
+			m_pBackBufferPixels[bufferIdx] = boundingBoxColor;
+	}
+
+	// Right line
+	for (int y = iMinY; y <= iMaxY; ++y)
+	{
+		int bufferIdx = iMaxX + (y * m_Width);
+		if (bufferIdx >= 0 && bufferIdx < m_AllPixels)
+			m_pBackBufferPixels[bufferIdx] = boundingBoxColor;
+	}
 }

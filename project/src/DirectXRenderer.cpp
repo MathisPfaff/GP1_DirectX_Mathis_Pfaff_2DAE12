@@ -230,6 +230,12 @@ void D_Renderer::SetSamplerFilter(SamplerFilter filter)
 	}
 }
 
+void D_Renderer::ToggleFireMesh()
+{
+	m_IsFireMeshEnabled = !m_IsFireMeshEnabled;
+	std::cout << "Fire mesh -> " << (m_IsFireMeshEnabled ? "On" : "Off") << std::endl;
+}
+
 void D_Renderer::Render() const
 {
 	if (!m_IsInitialized || !m_pMesh)
@@ -255,8 +261,8 @@ void D_Renderer::Render() const
 
 	// IMPORTANT: Render fire SECOND (transparent)
 	// Fire uses blend states and doesn't write to depth buffer
-	// Render only if fire mesh is valid and has texture
-	if (m_pFireMesh && m_pFireDiffuseTexture && m_pFireDiffuseTexture->GetShaderResourceView())
+	// Render only if fire mesh is valid, has texture, and is enabled
+	if (m_IsFireMeshEnabled && m_pFireMesh && m_pFireDiffuseTexture && m_pFireDiffuseTexture->GetShaderResourceView())
 	{
 		Matrix fireWorldViewProjMatrix = worldMatrix * viewProjMatrix;
 		m_pFireMesh->Render(m_pDeviceContext, fireWorldViewProjMatrix, worldMatrix, m_pCamera->GetPosition(),

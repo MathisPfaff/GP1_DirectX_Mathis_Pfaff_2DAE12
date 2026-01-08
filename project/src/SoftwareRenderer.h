@@ -41,6 +41,7 @@ namespace dae
 		void ToggleNormalMap();
 		void ToggleRotateMesh();
 		void CycleShadingMode();
+		void ToggleBoundingBox();
 
 	private:
 		SDL_Window* m_pWindow{};
@@ -59,6 +60,7 @@ namespace dae
 
 		bool m_UseNormalMap{ true };
 		bool m_DepthBufferEnabled{ false };
+		bool m_ShowBoundingBox{ false };
 		ShadingMode m_ShadingMode;
 
 		std::vector<Mesh> m_Meshes;
@@ -87,5 +89,6 @@ namespace dae
 
 		void VertexTransformationFunction(const std::vector<Vertex>& vertices, std::vector<Vertex_Out>& verticesOut, const Matrix& worldMatrix) const;
 		void PixelShading(const Vertex_Shader& shaderVertex, int indexBuffer);
+		void DrawBoundingBox(const Mesh& mesh);
 	};
 }

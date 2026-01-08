@@ -70,7 +70,10 @@ void Renderer::Update(const Timer* pTimer)
 	m_Camera.Update(const_cast<Timer*>(pTimer));
 
 	// Update shared mesh rotation (45 degrees per second)
-	m_MeshRotationRadians += MESH_ROTATION_SPEED * pTimer->GetElapsed() * 3.14159f / 180.f;
+	if (m_RotateMesh)
+	{
+		m_MeshRotationRadians += MESH_ROTATION_SPEED * pTimer->GetElapsed() * 3.14159f / 180.f;
+	}
 
 	// Update the active renderer
 	if (m_CurrentRenderer == RendererType::DirectX && m_pDirectXRenderer)
@@ -128,5 +131,50 @@ void Renderer::SwitchRenderer()
 		{
 			std::cout << "DirectX renderer not available\n";
 		}
+	}
+}
+
+void Renderer::Changerotation()
+{
+	m_RotateMesh = !m_RotateMesh;
+}
+
+void Renderer::ToggleFireMesh()
+{
+	if (m_CurrentRenderer == RendererType::DirectX && m_pDirectXRenderer)
+	{
+		m_pDirectXRenderer->ToggleFireMesh();
+	}
+}
+
+void Renderer::CycleShadingMode()
+{
+	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
+	{
+		m_pSoftwareRenderer->CycleShadingMode();
+	}
+}
+
+void Renderer::ToggleNormalMap()
+{
+	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
+	{
+		m_pSoftwareRenderer->ToggleNormalMap();
+	}
+}
+
+void Renderer::ToggleDepthBuffer()
+{
+	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
+	{
+		m_pSoftwareRenderer->SwitchDepthBuffer();
+	}
+}
+
+void Renderer::ToggleBoundingBox()
+{
+	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
+	{
+		m_pSoftwareRenderer->ToggleBoundingBox();
 	}
 }

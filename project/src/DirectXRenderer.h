@@ -37,6 +37,7 @@ namespace dae
 		void Update(const Timer* pTimer);
 		void Render() const;
 		void SetSamplerFilter(SamplerFilter filter);
+		void ToggleFireMesh();
 
 	private:
 		SDL_Window* m_pWindow{};
@@ -45,6 +46,7 @@ namespace dae
 		int m_Height{};
 
 		bool m_IsInitialized{ false };
+		bool m_IsFireMeshEnabled{ true };
 
 		Camera* m_pCamera{};
 		float* m_pMeshRotation{};

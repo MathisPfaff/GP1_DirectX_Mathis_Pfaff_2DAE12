@@ -71,7 +71,19 @@ int main(int argc, char* args[])
 				isLooping = false;
 				break;
 			case SDL_KEYUP:
+				if (e.key.keysym.scancode == SDL_SCANCODE_F1)
+				{
+					pRenderer->SwitchRenderer();
+				}
 				if (e.key.keysym.scancode == SDL_SCANCODE_F2)
+				{
+					pRenderer->Changerotation();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F3)
+				{
+					pRenderer->ToggleFireMesh();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F4)
 				{
 					// Cycle through sampler filters
 					switch (currentFilter)
@@ -88,9 +100,21 @@ int main(int argc, char* args[])
 					}
 					pRenderer->SetSamplerFilter(currentFilter);
 				}
-				if (e.key.keysym.scancode == SDL_SCANCODE_R)
+				if (e.key.keysym.scancode == SDL_SCANCODE_F5)
 				{
-					pRenderer->SwitchRenderer();
+					pRenderer->CycleShadingMode();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F6)
+				{
+					pRenderer->ToggleNormalMap();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F7)
+				{
+					pRenderer->ToggleDepthBuffer();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F8)
+				{
+					pRenderer->ToggleBoundingBox();
 				}
 				break;
 			default: ;
