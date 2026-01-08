@@ -17,7 +17,9 @@ using namespace dae;
 Renderer::Renderer(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
 	m_CurrentRenderer(RendererType::DirectX),
-	m_MeshRotationRadians(0.0f)
+	m_MeshRotationRadians(0.0f),
+	m_CurrentCullMode(CullMode::BackFace),
+	m_UseUniformClearColor(false)
 {
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
@@ -176,5 +178,50 @@ void Renderer::ToggleBoundingBox()
 	if (m_CurrentRenderer == RendererType::Software && m_pSoftwareRenderer)
 	{
 		m_pSoftwareRenderer->ToggleBoundingBox();
+	}
+}
+
+void Renderer::CycleCullMode()
+{
+	switch (m_CurrentCullMode)
+	{
+	case CullMode::BackFace:
+		m_CurrentCullMode = CullMode::FrontFace;
+		std::cout << "Cull mode -> Front-face\n";
+		break;
+	case CullMode::FrontFace:
+		m_CurrentCullMode = CullMode::None;
+		std::cout << "Cull mode -> None\n";
+		break;
+	case CullMode::None:
+		m_CurrentCullMode = CullMode::BackFace;
+		std::cout << "Cull mode -> Back-face\n";
+		break;
+	}
+
+	// Apply cull mode to both renderers
+	if (m_pDirectXRenderer)
+	{
+		m_pDirectXRenderer->SetCullMode(m_CurrentCullMode);
+	}
+	if (m_pSoftwareRenderer)
+	{
+		m_pSoftwareRenderer->SetCullMode(m_CurrentCullMode);
+	}
+}
+
+void Renderer::ToggleClearColor()
+{
+	m_UseUniformClearColor = !m_UseUniformClearColor;
+	std::cout << "Clear color -> " << (m_UseUniformClearColor ? "Uniform {0.1f, 0.1f, 0.1f}" : "Different colors") << "\n";
+
+	// Apply clear color settings to both renderers
+	if (m_pDirectXRenderer)
+	{
+		m_pDirectXRenderer->SetUniformClearColor(m_UseUniformClearColor);
+	}
+	if (m_pSoftwareRenderer)
+	{
+		m_pSoftwareRenderer->SetUniformClearColor(m_UseUniformClearColor);
 	}
 }

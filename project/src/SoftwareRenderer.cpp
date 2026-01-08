@@ -152,7 +152,10 @@ void S_Renderer::ToggleBoundingBox()
 void S_Renderer::Render()
 {
 	SDL_LockSurface(m_pBackBuffer);
-	SDL_FillRect(m_pBackBuffer, nullptr, ColorToUint32(colors::Gray));
+
+	// Apply clear color based on m_UseUniformClearColor setting
+	ColorRGB clearColor = m_UseUniformClearColor ? ColorRGB{ 0.1f, 0.1f, 0.1f } : colors::Gray;
+	SDL_FillRect(m_pBackBuffer, nullptr, ColorToUint32(clearColor));
 
 	std::fill(m_pDepthBufferPixels, m_pDepthBufferPixels + (m_Width * m_Height), FLT_MAX);
 
@@ -211,6 +214,33 @@ void S_Renderer::Render()
 			Vector2 v1 = mesh.vertices_out[idx1].position.GetXY();
 			Vector2 v2 = mesh.vertices_out[idx2].position.GetXY();
 
+			// Calculate the signed area (cross product) to determine winding order
+			// Used for backface culling
+			float signedArea = (v1.x - v0.x) * (v2.y - v0.y) - (v2.x - v0.x) * (v1.y - v0.y);
+
+			// Perform culling based on the current cull mode
+			bool shouldCull = false;
+			switch (m_CullMode)
+			{
+			case CullMode::BackFace:
+				// Cull triangles with negative signed area (backfacing)
+				shouldCull = signedArea < 0.0f;
+				break;
+			case CullMode::FrontFace:
+				// Cull triangles with positive signed area (frontfacing)
+				shouldCull = signedArea > 0.0f;
+				break;
+			case CullMode::None:
+				// Don't cull anything
+				shouldCull = false;
+				break;
+			}
+
+			if (shouldCull)
+			{
+				continue;
+			}
+
 			int minX = std::clamp((int)(std::min({ v0.x, v1.x, v2.x }) - 1.0f), 0, m_Width);
 			int minY = std::clamp((int)(std::min({ v0.y, v1.y, v2.y }) - 1.0f), 0, m_Height);
 			int maxX = std::clamp((int)(std::max({ v0.x, v1.x, v2.x }) + 1.0f), 0, m_Width);
@@ -218,7 +248,7 @@ void S_Renderer::Render()
 
 			Vector2 edges[] = { v1 - v0, v2 - v1, v0 - v2 };
 
-			// triangle rasyerization
+			// triangle rasterization
 			for (int px{ minX }; px < maxX; ++px)
 			{
 				for (int py{ minY }; py < maxY; ++py)
@@ -480,5 +510,35 @@ void S_Renderer::DrawBoundingBox(const Mesh& mesh)
 		int bufferIdx = iMaxX + (y * m_Width);
 		if (bufferIdx >= 0 && bufferIdx < m_AllPixels)
 			m_pBackBufferPixels[bufferIdx] = boundingBoxColor;
+	}
+}
+
+void S_Renderer::SetCullMode(CullMode cullMode)
+{
+	m_CullMode = cullMode;
+	switch (m_CullMode)
+	{
+	case CullMode::BackFace:
+		std::cout << "Software Renderer: Cull mode set to Back-face\n";
+		break;
+	case CullMode::FrontFace:
+		std::cout << "Software Renderer: Cull mode set to Front-face\n";
+		break;
+	case CullMode::None:
+		std::cout << "Software Renderer: Cull mode set to None\n";
+		break;
+	}
+}
+
+void S_Renderer::SetUniformClearColor(bool useUniform)
+{
+	m_UseUniformClearColor = useUniform;
+	if (m_UseUniformClearColor)
+	{
+		std::cout << "Software Renderer: Clear color set to Uniform {0.1f, 0.1f, 0.1f}\n";
+	}
+	else
+	{
+		std::cout << "Software Renderer: Clear color set to Different colors\n";
 	}
 }

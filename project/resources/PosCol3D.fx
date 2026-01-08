@@ -9,6 +9,18 @@ static const float3 gLightDirection = { -0.577f, 0.577f, -0.577f };
 //---------------------------------------------------------------
 // Rasterizer States
 //---------------------------------------------------------------
+RasterizerState gRasterizerStateBackFaceCull
+{
+    CullMode = back;
+    FrontCounterClockwise = false;
+};
+
+RasterizerState gRasterizerStateFrontFaceCull
+{
+    CullMode = front;
+    FrontCounterClockwise = false;
+};
+
 RasterizerState gRasterizerStateNoCull
 {
     CullMode = none;
@@ -265,12 +277,13 @@ float4 PSFireAnisotropic(VS_OUTPUT input) : SV_TARGET
 }
 
 //---------------------------------------------------------------
-// Techniques for Vehicle (Opaque)
+// Techniques for Vehicle (Opaque) - Back-Face Cull (Default)
 //---------------------------------------------------------------
 technique11 PointTechnique
 {
     pass P0
     {
+        SetRasterizerState(gRasterizerStateBackFaceCull);
         SetDepthStencilState(gDepthStencilStateOpaque, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
@@ -282,6 +295,7 @@ technique11 LinearTechnique
 {
     pass P0
     {
+        SetRasterizerState(gRasterizerStateBackFaceCull);
         SetDepthStencilState(gDepthStencilStateOpaque, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
@@ -293,6 +307,7 @@ technique11 AnisotropicTechnique
 {
     pass P0
     {
+        SetRasterizerState(gRasterizerStateBackFaceCull);
         SetDepthStencilState(gDepthStencilStateOpaque, 0);
         SetVertexShader(CompileShader(vs_5_0, VS()));
         SetGeometryShader(NULL);
@@ -301,7 +316,85 @@ technique11 AnisotropicTechnique
 }
 
 //---------------------------------------------------------------
-// Techniques for Fire FX (Transparent)
+// Techniques for Vehicle with Front-Face Cull
+//---------------------------------------------------------------
+technique11 PointTechniqueFrontCull
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateFrontFaceCull);
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSPoint()));
+    }
+}
+
+technique11 LinearTechniqueFrontCull
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateFrontFaceCull);
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSLinear()));
+    }
+}
+
+technique11 AnisotropicTechniqueFrontCull
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateFrontFaceCull);
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSAnisotropic()));
+    }
+}
+
+//---------------------------------------------------------------
+// Techniques for Vehicle with No Cull
+//---------------------------------------------------------------
+technique11 PointTechniqueNoCull
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateNoCull);
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSPoint()));
+    }
+}
+
+technique11 LinearTechniqueNoCull
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateNoCull);
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSLinear()));
+    }
+}
+
+technique11 AnisotropicTechniqueNoCull
+{
+    pass P0
+    {
+        SetRasterizerState(gRasterizerStateNoCull);
+        SetDepthStencilState(gDepthStencilStateOpaque, 0);
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, PSAnisotropic()));
+    }
+}
+
+//---------------------------------------------------------------
+// Techniques for Fire FX (Transparent) - Always No Cull
 //---------------------------------------------------------------
 technique11 FirePointTechnique
 {

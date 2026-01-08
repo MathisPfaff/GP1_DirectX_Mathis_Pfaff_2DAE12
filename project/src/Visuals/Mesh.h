@@ -31,7 +31,7 @@ namespace dae
 		void Render(ID3D11DeviceContext* pDeviceContext, const Matrix& worldViewProjMatrix, 
 		           const Matrix& worldMatrix, const Vector3& cameraPos, 
 				   D_Texture* pNormalMap, D_Texture* pSpecularMap, D_Texture* pGlossinessMap,
-		           SamplerFilter filter = SamplerFilter::Point) const;
+		           SamplerFilter filter = SamplerFilter::Point, CullMode cullMode = CullMode::BackFace) const;
 
 		bool IsFireFX() const { return m_IsFireFX; }
 		bool HasValidTexture() const { return m_pTexture != nullptr; }
@@ -56,7 +56,7 @@ namespace dae
 		bool m_bOwnEffect = false;
 
 		// Helper functions
-		void SetupTechnique(ID3D11DeviceContext* pDeviceContext, SamplerFilter filter) const;
+		void SetupTechnique(ID3D11DeviceContext* pDeviceContext, SamplerFilter filter, CullMode cullMode) const;
 		void BindTextures(const D_Texture* pNormalMap, const D_Texture* pSpecularMap, const D_Texture* pGlossinessMap) const;
 	};
 }

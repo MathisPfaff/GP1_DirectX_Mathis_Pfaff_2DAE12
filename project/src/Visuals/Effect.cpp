@@ -52,39 +52,86 @@ static ID3DX11Effect* LoadEffect(ID3D11Device* pDevice, const std::wstring& asse
 }
 
 Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile) :
+	m_pEffect{ nullptr },
+	m_pTechniquePointBackCull{ nullptr },
+	m_pTechniquePointFrontCull{ nullptr },
+	m_pTechniquePointNoCull{ nullptr },
+	m_pTechniqueLinearBackCull{ nullptr },
+	m_pTechniqueLinearFrontCull{ nullptr },
+	m_pTechniqueLinearNoCull{ nullptr },
+	m_pTechniqueAnisotropicBackCull{ nullptr },
+	m_pTechniqueAnisotropicFrontCull{ nullptr },
+	m_pTechniqueAnisotropicNoCull{ nullptr },
 	m_pMatWorldViewProjVariable{ nullptr },
 	m_pMatWorldVariable{ nullptr },
 	m_pCameraPositionVariable{ nullptr },
 	m_pDiffuseMapVariable{ nullptr },
 	m_pNormalMapVariable{ nullptr },
 	m_pSpecularMapVariable{ nullptr },
-	m_pGlossinessMapVariable{ nullptr },
-	m_pTechniquePoint{ nullptr },
-	m_pTechniqueLinear{ nullptr },
-	m_pTechniqueAnisotropic{ nullptr }
+	m_pGlossinessMapVariable{ nullptr }
 {
 	m_pEffect = LoadEffect(pDevice, assetFile);
 
 	if (m_pEffect != nullptr)
 	{
-		m_pTechniquePoint = m_pEffect->GetTechniqueByName("PointTechnique");
-		if (!m_pTechniquePoint->IsValid())
+		// Load Point Filter techniques
+		m_pTechniquePointBackCull = m_pEffect->GetTechniqueByName("PointTechnique");
+		if (!m_pTechniquePointBackCull->IsValid())
 		{
 			std::wcout << L"Effect: PointTechnique not valid!\n";
 		}
 
-		m_pTechniqueLinear = m_pEffect->GetTechniqueByName("LinearTechnique");
-		if (!m_pTechniqueLinear->IsValid())
+		m_pTechniquePointFrontCull = m_pEffect->GetTechniqueByName("PointTechniqueFrontCull");
+		if (!m_pTechniquePointFrontCull->IsValid())
+		{
+			std::wcout << L"Effect: PointTechniqueFrontCull not valid!\n";
+		}
+
+		m_pTechniquePointNoCull = m_pEffect->GetTechniqueByName("PointTechniqueNoCull");
+		if (!m_pTechniquePointNoCull->IsValid())
+		{
+			std::wcout << L"Effect: PointTechniqueNoCull not valid!\n";
+		}
+
+		// Load Linear Filter techniques
+		m_pTechniqueLinearBackCull = m_pEffect->GetTechniqueByName("LinearTechnique");
+		if (!m_pTechniqueLinearBackCull->IsValid())
 		{
 			std::wcout << L"Effect: LinearTechnique not valid!\n";
 		}
 
-		m_pTechniqueAnisotropic = m_pEffect->GetTechniqueByName("AnisotropicTechnique");
-		if (!m_pTechniqueAnisotropic->IsValid())
+		m_pTechniqueLinearFrontCull = m_pEffect->GetTechniqueByName("LinearTechniqueFrontCull");
+		if (!m_pTechniqueLinearFrontCull->IsValid())
+		{
+			std::wcout << L"Effect: LinearTechniqueFrontCull not valid!\n";
+		}
+
+		m_pTechniqueLinearNoCull = m_pEffect->GetTechniqueByName("LinearTechniqueNoCull");
+		if (!m_pTechniqueLinearNoCull->IsValid())
+		{
+			std::wcout << L"Effect: LinearTechniqueNoCull not valid!\n";
+		}
+
+		// Load Anisotropic Filter techniques
+		m_pTechniqueAnisotropicBackCull = m_pEffect->GetTechniqueByName("AnisotropicTechnique");
+		if (!m_pTechniqueAnisotropicBackCull->IsValid())
 		{
 			std::wcout << L"Effect: AnisotropicTechnique not valid!\n";
 		}
 
+		m_pTechniqueAnisotropicFrontCull = m_pEffect->GetTechniqueByName("AnisotropicTechniqueFrontCull");
+		if (!m_pTechniqueAnisotropicFrontCull->IsValid())
+		{
+			std::wcout << L"Effect: AnisotropicTechniqueFrontCull not valid!\n";
+		}
+
+		m_pTechniqueAnisotropicNoCull = m_pEffect->GetTechniqueByName("AnisotropicTechniqueNoCull");
+		if (!m_pTechniqueAnisotropicNoCull->IsValid())
+		{
+			std::wcout << L"Effect: AnisotropicTechniqueNoCull not valid!\n";
+		}
+
+		// Load matrix and resource variables
 		m_pMatWorldViewProjVariable = m_pEffect->GetVariableByName("gWorldViewProj")->AsMatrix();
 		if (!m_pMatWorldViewProjVariable->IsValid())
 		{
@@ -147,19 +194,45 @@ ID3DX11Effect* Effect::GetEffect() const
 	return m_pEffect;
 }
 
-ID3DX11EffectTechnique* Effect::GetTechnique(SamplerFilter filter) const
+ID3DX11EffectTechnique* Effect::GetTechnique(dae::SamplerFilter filter, dae::CullMode cullMode) const
 {
 	switch (filter)
 	{
-	case SamplerFilter::Point:
-		return m_pTechniquePoint;
-	case SamplerFilter::Linear:
-		return m_pTechniqueLinear;
-	case SamplerFilter::Anisotropic:
-		return m_pTechniqueAnisotropic;
-	default:
-		return m_pTechniquePoint;
+	case dae::SamplerFilter::Point:
+		switch (cullMode)
+		{
+		case dae::CullMode::BackFace:
+			return m_pTechniquePointBackCull;
+		case dae::CullMode::FrontFace:
+			return m_pTechniquePointFrontCull;
+		case dae::CullMode::None:
+			return m_pTechniquePointNoCull;
+		}
+		break;
+	case dae::SamplerFilter::Linear:
+		switch (cullMode)
+		{
+		case dae::CullMode::BackFace:
+			return m_pTechniqueLinearBackCull;
+		case dae::CullMode::FrontFace:
+			return m_pTechniqueLinearFrontCull;
+		case dae::CullMode::None:
+			return m_pTechniqueLinearNoCull;
+		}
+		break;
+	case dae::SamplerFilter::Anisotropic:
+		switch (cullMode)
+		{
+		case dae::CullMode::BackFace:
+			return m_pTechniqueAnisotropicBackCull;
+		case dae::CullMode::FrontFace:
+			return m_pTechniqueAnisotropicFrontCull;
+		case dae::CullMode::None:
+			return m_pTechniqueAnisotropicNoCull;
+		}
+		break;
 	}
+	return m_pTechniquePointBackCull; // Default fallback
 }
 
 ID3DX11EffectMatrixVariable* Effect::GetWorldViewProjVariable() const

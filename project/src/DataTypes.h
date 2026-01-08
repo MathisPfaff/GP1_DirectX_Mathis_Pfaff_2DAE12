@@ -4,6 +4,25 @@
 
 namespace dae
 {
+	enum class RendererType
+	{
+		DirectX,
+		Software
+	};
+
+	enum class SamplerFilter
+	{
+		Point,
+		Linear,
+		Anisotropic
+	};
+
+	enum class CullMode
+	{
+		BackFace,
+		FrontFace,
+		None
+	};
 	struct Vertex
 	{
 		Vector3 position{};

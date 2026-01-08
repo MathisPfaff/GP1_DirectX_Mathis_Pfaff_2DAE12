@@ -58,6 +58,19 @@ int main(int argc, char* args[])
 	float printTimer = 0.f;
 	bool isLooping = true;
 	SamplerFilter currentFilter = SamplerFilter::Point;
+	bool printFPS = false;
+
+	// Cull mode enumeration
+	enum class CullMode
+	{
+		BackFace,
+		FrontFace,
+		None
+	};
+	CullMode currentCullMode = CullMode::BackFace;
+
+	// Clear color state
+	bool useUniformColor = false;
 
 	while (isLooping)
 	{
@@ -116,6 +129,19 @@ int main(int argc, char* args[])
 				{
 					pRenderer->ToggleBoundingBox();
 				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F9)
+				{
+					pRenderer->CycleCullMode();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F10)
+				{
+					pRenderer->ToggleClearColor();
+				}
+				if (e.key.keysym.scancode == SDL_SCANCODE_F11)
+				{
+					printFPS = !printFPS;
+					std::cout << "FPS printing -> " << (printFPS ? "On" : "Off") << std::endl;
+				}
 				break;
 			default: ;
 			}
@@ -130,7 +156,7 @@ int main(int argc, char* args[])
 		//--------- Timer ---------
 		pTimer->Update();
 		printTimer += pTimer->GetElapsed();
-		if (printTimer >= 1.f)
+		if (printTimer >= 1.f && printFPS)
 		{
 			printTimer = 0.f;
 			std::cout << "dFPS: " << pTimer->GetdFPS() << std::endl;

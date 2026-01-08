@@ -7,13 +7,7 @@
 #include <d3dcompiler.h>
 #include <d3dx11effect.h>
 #include "Math/Matrix.h"
-
-enum class SamplerFilter
-{
-	Point = 0,
-	Linear = 1,
-	Anisotropic = 2
-};
+#include "DataTypes.h"
 
 class Effect
 {
@@ -27,7 +21,7 @@ public:
 	Effect& operator=(Effect&&) noexcept = delete;
 
 	ID3DX11Effect* GetEffect() const;
-	ID3DX11EffectTechnique* GetTechnique(SamplerFilter filter = SamplerFilter::Point) const;
+	ID3DX11EffectTechnique* GetTechnique(dae::SamplerFilter filter = dae::SamplerFilter::Point, dae::CullMode cullMode = dae::CullMode::BackFace) const;
 	ID3DX11EffectMatrixVariable* GetWorldViewProjVariable() const;
 	ID3DX11EffectMatrixVariable* GetWorldMatrixVariable() const;
 	ID3DX11EffectVectorVariable* GetCameraPositionVariable() const;
@@ -39,9 +33,21 @@ public:
 
 protected:
 	ID3DX11Effect* m_pEffect;
-	ID3DX11EffectTechnique* m_pTechniquePoint;
-	ID3DX11EffectTechnique* m_pTechniqueLinear;
-	ID3DX11EffectTechnique* m_pTechniqueAnisotropic;
+
+	// Vehicle techniques with different cull modes
+	ID3DX11EffectTechnique* m_pTechniquePointBackCull;
+	ID3DX11EffectTechnique* m_pTechniquePointFrontCull;
+	ID3DX11EffectTechnique* m_pTechniquePointNoCull;
+
+	ID3DX11EffectTechnique* m_pTechniqueLinearBackCull;
+	ID3DX11EffectTechnique* m_pTechniqueLinearFrontCull;
+	ID3DX11EffectTechnique* m_pTechniqueLinearNoCull;
+
+	ID3DX11EffectTechnique* m_pTechniqueAnisotropicBackCull;
+	ID3DX11EffectTechnique* m_pTechniqueAnisotropicFrontCull;
+	ID3DX11EffectTechnique* m_pTechniqueAnisotropicNoCull;
+
+	// Matrix and resource variables
 	ID3DX11EffectMatrixVariable* m_pMatWorldViewProjVariable;
 	ID3DX11EffectMatrixVariable* m_pMatWorldVariable;
 	ID3DX11EffectVectorVariable* m_pCameraPositionVariable;

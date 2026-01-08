@@ -2,34 +2,17 @@
 
 // SDL Headers
 #include "SDL.h"
-#include "SDL_syswm.h"
-#include "SDL_surface.h"
-#include "SDL_image.h"
-
-// DirectX Headers
-#include <dxgi.h>
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <d3dx11effect.h>
-
-// Framework Headers
-#include "Timer.h"
+#include "DataTypes.h"
 #include "Camera.h"
-#include "Visuals/Effect.h"
 
-class Mesh;
+// Forward declarations
 class D_Texture;
 
 namespace dae
 {
-	class S_Renderer;
 	class D_Renderer;
-
-	enum class RendererType
-	{
-		Software,
-		DirectX
-	};
+	class S_Renderer;
+	class Timer;
 
 	class Renderer final
 	{
@@ -55,9 +38,17 @@ namespace dae
 		void ToggleDepthBuffer();
 		void ToggleBoundingBox();
 
+		// Cull mode control
+		void CycleCullMode();
+
+		// Clear color control
+		void ToggleClearColor();
+
 		// Getters for shared camera and rotation
 		const Camera& GetCamera() const { return m_Camera; }
 		float GetMeshRotationRadians() const { return m_MeshRotationRadians; }
+		CullMode GetCurrentCullMode() const { return m_CurrentCullMode; }
+		bool GetUseUniformClearColor() const { return m_UseUniformClearColor; }
 
 	private:
 		SDL_Window* m_pWindow{};
@@ -79,5 +70,8 @@ namespace dae
 		std::unique_ptr<S_Renderer> m_pSoftwareRenderer{};
 		std::unique_ptr<D_Renderer> m_pDirectXRenderer{};
 
+		// Shared rendering state
+		CullMode m_CurrentCullMode{ CullMode::BackFace };
+		bool m_UseUniformClearColor{ false };
 	};
 }

@@ -241,8 +241,25 @@ void D_Renderer::Render() const
 	if (!m_IsInitialized || !m_pMesh)
 		return;
 
-	// 1. Clear RTV and DSV
-	constexpr float color[4] = { 0.f, 0.f, 0.3f, 1.f };
+	// 1. Clear RTV and DSV with the appropriate clear color
+	float color[4];
+	if (m_UseUniformClearColor)
+	{
+		// Uniform clear color {0.1f, 0.1f, 0.1f}
+		color[0] = 0.1f;
+		color[1] = 0.1f;
+		color[2] = 0.1f;
+		color[3] = 1.0f;
+	}
+	else
+	{
+		// Default cornflower blue {0.39f, 0.59f, 0.93f}
+		color[0] = 0.39f;
+		color[1] = 0.59f;
+		color[2] = 0.93f;
+		color[3] = 1.0f;
+	}
+
 	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, color);
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
@@ -256,11 +273,13 @@ void D_Renderer::Render() const
 
 	// IMPORTANT: Render vehicle FIRST (opaque)
 	// This writes to the depth buffer so transparent fire is rendered correctly behind it
+	// The cull mode is controlled by the shader technique based on m_CurrentCullMode
 	m_pMesh->Render(m_pDeviceContext, worldViewProjMatrix, worldMatrix, m_pCamera->GetPosition(),
-		m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter);
+		m_pNormalTexture, m_pSpecularTexture, m_pGlossinessTexture, m_CurrentSamplerFilter, m_CurrentCullMode);
 
 	// IMPORTANT: Render fire SECOND (transparent)
 	// Fire uses blend states and doesn't write to depth buffer
+	// Fire FX mesh always uses no-cull mode (defined in shader)
 	// Render only if fire mesh is valid, has texture, and is enabled
 	if (m_IsFireMeshEnabled && m_pFireMesh && m_pFireDiffuseTexture && m_pFireDiffuseTexture->GetShaderResourceView())
 	{
@@ -454,4 +473,36 @@ HRESULT D_Renderer::InitializeDirectX()
 	m_pDeviceContext->RSSetViewports(1, &viewport);
 
 	return S_OK;
+}
+
+void D_Renderer::SetCullMode(CullMode cullMode)
+{
+	m_CurrentCullMode = cullMode;
+	switch (m_CurrentCullMode)
+	{
+	case CullMode::BackFace:
+		std::cout << "DirectX Renderer: Cull mode set to Back-face\n";
+		break;
+	case CullMode::FrontFace:
+		std::cout << "DirectX Renderer: Cull mode set to Front-face\n";
+		break;
+	case CullMode::None:
+		std::cout << "DirectX Renderer: Cull mode set to None\n";
+		break;
+	}
+	// TODO: Apply cull mode to DirectX rasterizer state
+}
+
+void D_Renderer::SetUniformClearColor(bool useUniform)
+{
+	m_UseUniformClearColor = useUniform;
+	if (m_UseUniformClearColor)
+	{
+		std::cout << "DirectX Renderer: Clear color set to Uniform {0.1f, 0.1f, 0.1f}\n";
+	}
+	else
+	{
+		std::cout << "DirectX Renderer: Clear color set to Different colors\n";
+	}
+	// TODO: Apply clear color changes to DirectX rendering
 }

@@ -122,13 +122,13 @@ namespace dae
 		m_pTexture = nullptr;
 	}
 
-	void D_Mesh::SetupTechnique(ID3D11DeviceContext* pDeviceContext, SamplerFilter filter) const
+	void D_Mesh::SetupTechnique(ID3D11DeviceContext* pDeviceContext, SamplerFilter filter, CullMode cullMode) const
 	{
 		ID3DX11EffectTechnique* pTechnique = nullptr;
 		
 		if (m_IsFireFX)
 		{
-			// Fire techniques have special blend and depth states
+			// Fire techniques always have special blend and depth states with no cull (from shader)
 			switch (filter)
 			{
 			case SamplerFilter::Point:
@@ -147,8 +147,8 @@ namespace dae
 		}
 		else
 		{
-			// Standard vehicle techniques
-			pTechnique = m_pEffect->GetTechnique(filter);
+			// Standard vehicle techniques - cull mode controlled by shader technique selection
+			pTechnique = m_pEffect->GetTechnique(filter, cullMode);
 		}
 
 		assert(pTechnique != nullptr && pTechnique->IsValid() && "Technique is invalid");
@@ -195,7 +195,7 @@ namespace dae
 	void D_Mesh::Render(ID3D11DeviceContext* pDeviceContext, const Matrix& worldViewProjMatrix, 
 	                  const Matrix& worldMatrix, const Vector3& cameraPos, 
 					  D_Texture* pNormalMap, D_Texture* pSpecularMap, D_Texture* pGlossinessMap,
-	                  SamplerFilter filter) const
+	                  SamplerFilter filter, CullMode cullMode) const
 	{
 		assert(pDeviceContext != nullptr && "Device context cannot be null");
 
@@ -217,7 +217,7 @@ namespace dae
 		pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 		pDeviceContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-		// Setup and execute technique
-		SetupTechnique(pDeviceContext, filter);
+		// Setup and execute technique with cull mode
+		SetupTechnique(pDeviceContext, filter, cullMode);
 	}
 }

@@ -42,6 +42,8 @@ namespace dae
 		void ToggleRotateMesh();
 		void CycleShadingMode();
 		void ToggleBoundingBox();
+		void SetCullMode(CullMode cullMode);
+		void SetUniformClearColor(bool useUniform);
 
 	private:
 		SDL_Window* m_pWindow{};
@@ -80,6 +82,9 @@ namespace dae
 
 		bool m_RotateMesh{ true };
 
+		// Rendering state
+		CullMode m_CullMode{ CullMode::BackFace };
+		bool m_UseUniformClearColor{ false };
 
 		Uint32 ColorToUint32(const ColorRGB& color);
 

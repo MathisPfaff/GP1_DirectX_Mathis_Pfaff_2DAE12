@@ -15,6 +15,7 @@
 // Framework Headers
 #include "Timer.h"
 #include "Camera.h"
+#include "DataTypes.h"
 #include "Visuals/Effect.h"
 
 class D_Texture;
@@ -38,6 +39,8 @@ namespace dae
 		void Render() const;
 		void SetSamplerFilter(SamplerFilter filter);
 		void ToggleFireMesh();
+		void SetCullMode(CullMode cullMode);
+		void SetUniformClearColor(bool useUniform);
 
 	private:
 		SDL_Window* m_pWindow{};
@@ -51,6 +54,10 @@ namespace dae
 		Camera* m_pCamera{};
 		float* m_pMeshRotation{};
 		mutable SamplerFilter m_CurrentSamplerFilter{ SamplerFilter::Point };
+
+		// Rendering state
+		CullMode m_CurrentCullMode{ CullMode::BackFace };
+		bool m_UseUniformClearColor{ false };
 
 		//DIRECTX
 		HRESULT InitializeDirectX();
